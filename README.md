@@ -11,20 +11,13 @@ Webapplicatie voor het doorzoeken van **moties**, **amendementen** en **schrifte
 
 ## Online gebruiken
 
-### GitHub Pages (aanbevolen)
+### GitHub Pages
 
-De app staat klaar op de `gh-pages` branch. Activeer GitHub Pages **eenmalig**:
+De app wordt automatisch gedeployed via GitHub Actions bij elke push naar `master`.
 
-1. Open [Repository Settings → Pages](https://github.com/Winventor/didactic-barnacle/settings/pages)
-2. Bij **Build and deployment** kies **Deploy from a branch**
-3. Branch: `gh-pages` · Folder: `/ (root)`
-4. Klik **Save**
+**Live URL:** https://winventor.github.io/didactic-barnacle/
 
-Na 1–2 minuten is de app bereikbaar op:
-
-**https://winventor.github.io/didactic-barnacle/**
-
-Bij elke push naar `master` wordt de site automatisch opnieuw gebouwd via GitHub Actions.
+Als Pages nog niet is ingeschakeld, kies bij [Settings → Pages](https://github.com/Winventor/didactic-barnacle/settings/pages) **GitHub Actions** als bron (of voer `./scripts/enable-github-pages.sh` uit).
 
 ### Alternatief: Render.com
 
@@ -32,20 +25,19 @@ Bij elke push naar `master` wordt de site automatisch opnieuw gebouwd via GitHub
 2. Klik op **New → Blueprint** en koppel deze GitHub-repository
 3. Render leest `render.yaml` en publiceert de app op een eigen URL
 
+## Lokaal draaien
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Lokaal draaien
-
-- Next.js 15 (App Router)
-- TypeScript + Tailwind CSS
-- Open Raadsinformatie Elasticsearch API: `https://api.openraadsinformatie.nl/v1/elastic/`
-
 Open [http://localhost:3000](http://localhost:3000).
 
 ## Techniek
+
+- Next.js 15 (App Router) + TypeScript + Tailwind CSS
+- Statische export voor GitHub Pages (`GITHUB_PAGES=true npm run build`)
+- Open Raadsinformatie Elasticsearch API: `https://api.openraadsinformatie.nl/v1/elastic/`
 
 De app haalt gegevens op uit de Open Raadsinformatie API van de Open State Foundation. Status en partijen worden afgeleid uit beschikbare metadata en documenttekst waar mogelijk.
