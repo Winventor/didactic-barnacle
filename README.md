@@ -17,7 +17,14 @@ De app wordt automatisch gedeployed via GitHub Actions bij elke push naar `maste
 
 **Live URL:** https://winventor.github.io/didactic-barnacle/
 
-Als Pages nog niet is ingeschakeld, kies bij [Settings → Pages](https://github.com/Winventor/didactic-barnacle/settings/pages) **GitHub Actions** als bron (of voer `./scripts/enable-github-pages.sh` uit).
+**Pages inschakelen (eenmalig)** — kies één van deze opties bij [Settings → Pages](https://github.com/Winventor/didactic-barnacle/settings/pages):
+
+| Optie | Instelling |
+|---|---|
+| Aanbevolen | **Deploy from a branch** → `gh-pages` → `/ (root)` |
+| Alternatief | **GitHub Actions** (werkt zodra Pages actief is) |
+
+Of voer lokaal uit: `./scripts/enable-github-pages.sh`
 
 ### Alternatief: Render.com
 

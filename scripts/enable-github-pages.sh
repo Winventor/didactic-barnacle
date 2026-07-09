@@ -3,12 +3,14 @@ set -euo pipefail
 
 REPO="${1:-Winventor/didactic-barnacle}"
 
-echo "GitHub Pages inschakelen voor ${REPO} (via GitHub Actions)..."
+echo "GitHub Pages inschakelen voor ${REPO} (via gh-pages branch)..."
 
 gh api "repos/${REPO}/pages" --method POST \
-  -f build_type=workflow
+  -f build_type=legacy \
+  -f 'source[branch]=gh-pages' \
+  -f 'source[path]=/'
 
 echo ""
-echo "GitHub Pages is ingeschakeld met GitHub Actions als bron."
-echo "De site wordt gepubliceerd na de volgende succesvolle workflow-run op:"
+echo "GitHub Pages is ingeschakeld."
+echo "De site is binnen 1-2 minuten bereikbaar op:"
 echo "https://winventor.github.io/didactic-barnacle/"
