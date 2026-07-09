@@ -118,6 +118,8 @@ export const mockTESComponents: TESComponent[] = [
 
 export const mockForecastModels: ForecastModel[] = [
   { id: "model-linreg", name: "Lineaire regressie", type: "linear_regression", description: "OLS-trendlijn op historische tijdreeks", enabled: true },
+  { id: "model-poly", name: "Polynomiale regressie (graad 2)", type: "polynomial_regression", description: "Kwadratische trend — geschikt voor gebogen verloop", enabled: true },
+  { id: "model-holt", name: "Holt lineaire trend", type: "holt", description: "Dubbele exponentiële smoothing met trendcomponent", enabled: true },
   { id: "model-ma", name: "Voortschrijdend gemiddelde", type: "moving_average", description: "Gewogen moving average extrapolatie", enabled: true },
   { id: "model-cagr", name: "CAGR-extrapolatie", type: "cagr", description: "Compound Annual Growth Rate scenario's", enabled: true },
   { id: "model-arima", name: "ARIMA", type: "arima", description: "Autoregressief geïntegreerd voortschrijdend gemiddelde (gepland)", enabled: false },

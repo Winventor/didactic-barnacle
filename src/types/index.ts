@@ -27,6 +27,8 @@ export type ForecastModelType =
   | "trend_extrapolation"
   | "cagr"
   | "scenario_analysis"
+  | "polynomial_regression"
+  | "holt"
   | "arima"
   | "prophet"
   | "bayesian"
@@ -199,6 +201,24 @@ export interface ExplainabilityDetail {
   variableInfluence: { variable: string; influence: number; description: string }[];
   uncertaintyMargin: number;
   limitations: string[];
+  modelSelection?: ModelSelectionResult;
+}
+
+export interface ModelSelectionResult {
+  selectedModelId: string;
+  selectedModelName: string;
+  reason: string;
+  dataPoints: number;
+  candidates: ModelCandidateScore[];
+}
+
+export interface ModelCandidateScore {
+  modelId: string;
+  modelName: string;
+  modelType: ForecastModelType;
+  rmse: number;
+  rSquared: number;
+  selected: boolean;
 }
 
 export interface SearchResult {
@@ -216,6 +236,15 @@ export interface SearchResult {
   dataProvenance: DataProvenance;
   occupationRanking?: OccupationRankingItem[];
   sectorRanking?: SectorRankingItem[];
+  historicalFit?: { year: number; actual: number; fitted: number }[];
+  chartSeries?: ChartSeriesPoint[];
+}
+
+export interface ChartSeriesPoint {
+  period: string;
+  year: number;
+  value: number;
+  kind: "historisch" | "model-fit";
 }
 
 export type DataMode = "live" | "mixed" | "synthetic";

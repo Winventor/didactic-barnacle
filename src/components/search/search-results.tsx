@@ -143,15 +143,29 @@ export function SearchResults({ result }: SearchResultsProps) {
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                   <h2 className="text-sm font-semibold">Historische ontwikkeling &amp; prognose</h2>
                 </div>
-                <p className="text-xs text-muted-foreground mb-4">
+                <p className="text-xs text-muted-foreground mb-2">
                   {result.forecast.occupationId
                     ? `${occupation?.name} — `
                     : ""}
                   {region?.name} — {indicator?.name} ({indicator?.unit})
                 </p>
+                {result.explainability.modelSelection && (
+                  <div className="mb-4 rounded-lg bg-muted/40 border border-border/40 px-3 py-2.5 text-xs text-muted-foreground space-y-1">
+                    <p>
+                      <span className="font-medium text-foreground">Gekozen model:</span>{" "}
+                      {result.explainability.modelSelection.selectedModelName}
+                    </p>
+                    <p>{result.explainability.modelSelection.reason}</p>
+                    <p>
+                      {result.explainability.modelSelection.dataPoints} meetpunten · periode{" "}
+                      {result.explainability.historicalPeriod.start}–{result.explainability.historicalPeriod.end}
+                    </p>
+                  </div>
+                )}
                 <HistoricalForecastChart
                   historical={result.historicalData}
                   scenarios={result.scenarios}
+                  chartSeries={result.chartSeries}
                   unit={indicator?.unit}
                 />
               </section>
