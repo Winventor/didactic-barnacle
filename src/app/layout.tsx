@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Raadsinformatie Overzicht",
+  title: "Beleidsdashboard OpenRaadsinformatie",
   description:
-    "Overzicht van moties, amendementen en schriftelijke vragen uit de Open Raadsinformatie API",
+    "Doorzoek, filter en analyseer openbare beleidsdocumenten uit OpenRaadsinformatie.nl",
 };
 
 export default function RootLayout({
@@ -13,9 +15,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl">
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
-        {children}
+    <html lang="nl" suppressHydrationWarning>
+      <body className="min-h-screen antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryProvider>{children}</QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

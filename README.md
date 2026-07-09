@@ -1,36 +1,17 @@
-# Raadsinformatie Overzicht
+# Beleidsdashboard OpenRaadsinformatie
 
-Webapplicatie voor het doorzoeken van **moties**, **amendementen** en **schriftelijke vragen** uit de [Open Raadsinformatie](https://www.openraadsinformatie.nl) API.
+Moderne, responsieve webapplicatie waarmee openbare beleidsdocumenten uit [OpenRaadsinformatie.nl](https://www.openraadsinformatie.nl) overzichtelijk kunnen worden doorzocht, gefilterd en geanalyseerd.
 
 ## Functies
 
-- Overzichtstabel met type, onderwerp, status (aangenomen/verworpen), indienende partijen, datum en gemeente
-- Filters op type, status, gemeente en vrije zoekterm
-- Links naar brondata op `id.openraadsinformatie.nl` en het PDF-bestand
-- Data uit meer dan 300 gemeenten via de Elasticsearch API
-
-## Online gebruiken
-
-### GitHub Pages
-
-De app wordt automatisch gedeployed via GitHub Actions bij elke push naar `master`.
-
-**Live URL:** https://winventor.github.io/didactic-barnacle/
-
-**Pages inschakelen (eenmalig)** — kies één van deze opties bij [Settings → Pages](https://github.com/Winventor/didactic-barnacle/settings/pages):
-
-| Optie | Instelling |
-|---|---|
-| Aanbevolen | **Deploy from a branch** → `gh-pages` → `/ (root)` |
-| Alternatief | **GitHub Actions** (werkt zodra Pages actief is) |
-
-Of voer lokaal uit: `./scripts/enable-github-pages.sh`
-
-### Alternatief: Render.com
-
-1. Maak een account op [Render](https://render.com)
-2. Klik op **New → Blueprint** en koppel deze GitHub-repository
-3. Render leest `render.yaml` en publiceert de app op een eigen URL
+- **Dashboard** met statistieken en grafieken (Recharts)
+- **Drie beleidslagen**: Beleidsvorming, Besluitvorming, Uitvoering & Evaluatie
+- **Uitgebreide filters**: beleidslaag, documentsoort, bestuurslaag, organisatie, provincie, gemeente, waterschap, thema, status, portefeuillehouder, periode
+- **Resultatentabel** met sortering, paginering, kolombeheer en verslepen (TanStack Table)
+- **Detailpagina** per document met metadata en tekstfragmenten
+- **Export** naar CSV, Excel en JSON
+- **Donker/licht thema**
+- **280 mockdocumenten** verdeeld over gemeenten, provincies en waterschappen
 
 ## Lokaal draaien
 
@@ -43,8 +24,53 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Techniek
 
-- Next.js 15 (App Router) + TypeScript + Tailwind CSS
-- Statische export voor GitHub Pages (`GITHUB_PAGES=true npm run build`)
-- Open Raadsinformatie Elasticsearch API: `https://api.openraadsinformatie.nl/v1/elastic/`
+- Next.js 15 (App Router) + TypeScript + Tailwind CSS v4
+- shadcn/ui componenten + Lucide Icons
+- TanStack Table + React Query
+- Recharts voor visualisaties
+- Modulaire datalaag (mock provider, Supabase-ready types)
 
-De app haalt gegevens op uit de Open Raadsinformatie API van de Open State Foundation. Status en partijen worden afgeleid uit beschikbare metadata en documenttekst waar mogelijk.
+## Architectuur
+
+```
+src/
+├── app/                    # Pagina's (dashboard + detail)
+├── components/             # UI-componenten
+│   ├── dashboard/          # Statistieken en grafieken
+│   ├── documents/          # Tabel, tabs, detail
+│   ├── filters/            # Filterbalk
+│   ├── layout/             # Header, thema
+│   └── ui/                 # shadcn/ui basis
+├── hooks/                  # React Query + filter hooks
+├── lib/
+│   ├── classification/     # Automatische beleidslaag-classificatie
+│   ├── constants/          # Documentsoorten, thema's, organisaties
+│   ├── data/               # Data provider (mock → API/Supabase)
+│   ├── export/             # CSV, Excel, JSON export
+│   ├── filters/            # Filterlogica
+│   └── stats/              # Statistieken en grafiekdata
+└── types/                  # TypeScript interfaces
+```
+
+## Toekomstige uitbreidingen
+
+De code is voorbereid op:
+
+- API-koppeling OpenRaadsinformatie
+- Scraper
+- Supabase database
+- Elasticsearch
+- AI-samenvattingen, classificatie en chat
+- Favorieten, tags, notities en dossierbewaking
+
+## Deployment
+
+### GitHub Pages
+
+```bash
+GITHUB_PAGES=true npm run build
+```
+
+### Render.com
+
+Zie `render.yaml` voor blueprint-configuratie.
