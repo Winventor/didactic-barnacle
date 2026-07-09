@@ -43,8 +43,16 @@ const INDICATOR_TES_MAP: Record<string, { componentId: string; signalRule: (tren
     signalRule: (t) => (t > 0 ? "positief" : "negatief"),
     narrative: (t, region) =>
       t > 0
-        ? `Groei van werkgelegenheid in de zorgsector in ${region} draagt bij aan maatschappelijke zorgcontinuïteit (generativiteit).`
+        ? `Groei van werkgelegenheid in ${region} draagt bij aan economische en maatschappelijke continuïteit (generativiteit).`
         : `Krimp in werkgelegenheid in ${region} kan de maatschappelijke bijdrage onder druk zetten.`,
+  },
+  "ind-werkeloosheid": {
+    componentId: "tes-bereidwilligheid",
+    signalRule: (t) => (t > 0 ? "negatief" : t < 0 ? "positief" : "neutraal"),
+    narrative: (t, region) =>
+      t > 0
+        ? `Stijgende werkloosheid in ${region} kan wijzen op afnemende arbeidsmarktkansen en lagere economische zekerheid (bereidwilligheid).`
+        : `Dalende of stabiele werkloosheid in ${region} suggereert een gezondere regionale arbeidsmarkt.`,
   },
   "ind-mobiliteit": {
     componentId: "tes-bereidwilligheid",

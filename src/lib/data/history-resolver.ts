@@ -1,5 +1,5 @@
 import type { HistoricalValue } from "@/types";
-import type { CBSLabourPoint } from "@/lib/connectors/cbs-connector";
+import type { CBSLabourPoint, CBSUnemploymentPoint } from "@/lib/connectors/cbs-connector";
 import { mockHistoricalValues } from "@/data/mock";
 
 const START_YEAR = 2015;
@@ -27,6 +27,7 @@ const INDICATOR_PROFILES: Record<
   "ind-vacatures": { baseMin: 80, baseMax: 1200, growthMin: 0.01, growthMax: 0.06, unit: "aantal" },
   "ind-scholing": { baseMin: 32, baseMax: 58, growthMin: 0.002, growthMax: 0.012, unit: "%" },
   "ind-verzuim": { baseMin: 4.2, baseMax: 7.8, growthMin: 0.001, growthMax: 0.008, unit: "%" },
+  "ind-werkeloosheid": { baseMin: 3.5, baseMax: 8.5, growthMin: -0.015, growthMax: 0.02, unit: "%" },
   "ind-mobiliteit": { baseMin: 85, baseMax: 140, growthMin: 0.005, growthMax: 0.025, unit: "index" },
 };
 
@@ -65,8 +66,9 @@ export function generateSyntheticSeries(params: {
   occupationId?: string;
   liveNational?: CBSLabourPoint[];
   liveRegional?: CBSLabourPoint | null;
+  liveUnemployment?: CBSUnemploymentPoint[];
 }): HistoricalValue[] {
-  const { indicatorId, regionId, occupationId, liveNational, liveRegional } = params;
+  const { indicatorId, regionId, occupationId, liveNational, liveRegional, liveUnemployment } = params;
   const profile = INDICATOR_PROFILES[indicatorId] ?? INDICATOR_PROFILES["ind-werkgelegenheid"];
   const seed = hashSeed(`${indicatorId}:${regionId}:${occupationId ?? "all"}`);
 
@@ -95,8 +97,16 @@ export function generateSyntheticSeries(params: {
       value = value * liveFactor * calibration;
     }
 
-    if (indicatorId === "ind-verzuim") {
-      value = Math.min(9.5, value);
+    const unemploymentYear = liveUnemployment?.find((p) => p.year === year);
+    if (unemploymentYear && indicatorId === "ind-werkeloosheid") {
+      const nationalUnempAnchor =
+        liveUnemployment?.[liveUnemployment.length - 1]?.unemploymentPct ?? unemploymentYear.unemploymentPct;
+      const regionalFactor = calibration < 1 ? 1 + (1 - calibration) * 0.15 : 1 - (calibration - 1) * 0.1;
+      value = unemploymentYear.unemploymentPct * regionalFactor;
+    }
+
+    if (indicatorId === "ind-verzuim" || indicatorId === "ind-werkeloosheid") {
+      value = Math.min(indicatorId === "ind-werkeloosheid" ? 12 : 9.5, Math.max(2, value));
     }
     if (indicatorId === "ind-scholing") {
       value = Math.min(65, value);
@@ -108,9 +118,9 @@ export function generateSyntheticSeries(params: {
       regionId,
       occupationId,
       year,
-      value: Math.round(value * (indicatorId === "ind-verzuim" || indicatorId === "ind-scholing" ? 10 : 1)) /
-        (indicatorId === "ind-verzuim" || indicatorId === "ind-scholing" ? 10 : 1),
-      sourceId: liveYear ? "src-cbs" : "src-cbs",
+      value: Math.round(value * (indicatorId === "ind-verzuim" || indicatorId === "ind-scholing" || indicatorId === "ind-werkeloosheid" ? 10 : 1)) /
+        (indicatorId === "ind-verzuim" || indicatorId === "ind-scholing" || indicatorId === "ind-werkeloosheid" ? 10 : 1),
+      sourceId: liveYear || unemploymentYear ? "src-cbs" : indicatorId === "ind-werkeloosheid" ? "src-uwv" : "src-cbs",
     });
   }
 
@@ -123,6 +133,7 @@ export function getHistoricalValuesResolved(filters: {
   indicatorId: string;
   liveNational?: CBSLabourPoint[];
   liveRegional?: CBSLabourPoint | null;
+  liveUnemployment?: CBSUnemploymentPoint[];
 }): HistoricalValue[] {
   const stored = mockHistoricalValues.filter((hv) => {
     if (hv.regionId !== filters.regionId) return false;
@@ -163,16 +174,18 @@ function calibrateStoredWithLive(
 export function getRegionalIndicatorValues(
   regionId: string,
   liveNational?: CBSLabourPoint[],
-  liveRegional?: CBSLabourPoint | null
+  liveRegional?: CBSLabourPoint | null,
+  liveUnemployment?: CBSUnemploymentPoint[]
 ): HistoricalValue[] {
   const indicators = [
     "ind-werkgelegenheid",
+    "ind-werkeloosheid",
     "ind-vacatures",
     "ind-scholing",
     "ind-verzuim",
     "ind-mobiliteit",
   ];
   return indicators.flatMap((indicatorId) =>
-    getHistoricalValuesResolved({ regionId, indicatorId, liveNational, liveRegional })
+    getHistoricalValuesResolved({ regionId, indicatorId, liveNational, liveRegional, liveUnemployment })
   );
 }

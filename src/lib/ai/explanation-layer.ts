@@ -25,6 +25,7 @@ export interface AIExplanationContext {
   sourceNames: string[];
   resultMode?: QueryResultMode;
   dataMode?: DataMode;
+  analysisScope?: "beroep" | "regio";
 }
 
 const AUDIENCE_TONE: Record<AudienceType, string> = {
@@ -34,9 +35,20 @@ const AUDIENCE_TONE: Record<AudienceType, string> = {
   onderzoekers: "wetenschappelijk onderbouwde",
 };
 
+function formatValue(value: number, unit?: string): string {
+  if (unit === "%") return `${value.toLocaleString("nl-NL")}%`;
+  return `${value.toLocaleString("nl-NL")} ${unit ?? ""}`.trim();
+}
+
 export function generateAIExplanations(ctx: AIExplanationContext): AIExplanation[] {
   const explanations: AIExplanation[] = [];
   let idx = 0;
+  const unit = ctx.indicator?.unit ?? "FTE";
+  const subject =
+    ctx.analysisScope === "regio" || !ctx.occupation
+      ? ctx.indicator?.name ?? "Arbeidsmarktindicator"
+      : ctx.occupation.name;
+  const region = ctx.region?.name ?? "de geselecteerde regio";
 
   const add = (label: AIStatementLabel, text: string, sourceIds: string[] = []) => {
     explanations.push({
@@ -52,29 +64,32 @@ export function generateAIExplanations(ctx: AIExplanationContext): AIExplanation
     ctx.dataMode === "live"
       ? "live CBS-data"
       : ctx.dataMode === "mixed"
-        ? "live CBS-data gecombineerd met modelgebaseerde beroepsseries"
+        ? "live CBS-data gecombineerd met regionale modellering"
         : "modelgebaseerde tijdreeksen";
 
   add(
     "Feit",
-    `Deze analyse gebruikt ${dataLabel} voor ${ctx.region?.name ?? "de geselecteerde regio"}${ctx.occupation ? ` — ${ctx.occupation.name}` : ""} (indicator: ${ctx.indicator?.name ?? "werkgelegenheid"}).`,
-    ctx.dataMode !== "synthetic" ? ["src-cbs"] : ["src-cbs"]
+    `Deze analyse richt zich op ${subject} in ${region} (${dataLabel}).` +
+      (ctx.occupation ? "" : " Geen specifiek beroep geselecteerd — dit is een regionale arbeidsmarktindicator."),
+    ctx.indicator?.id === "ind-werkeloosheid" ? ["src-cbs", "src-uwv"] : ["src-cbs"]
   );
 
   const sorted = [...ctx.historicalData].sort((a, b) => a.year - b.year);
   const first = sorted[0];
   const last = sorted[sorted.length - 1];
-  const growthPct = first && last ? (((last.value - first.value) / first.value) * 100).toFixed(1) : "—";
+  const changePct =
+    first && last ? (((last.value - first.value) / first.value) * 100).toFixed(1) : "—";
 
   add(
     "Feit",
-    `${ctx.occupation?.name ?? "Werkgelegenheid"} in ${ctx.region?.name ?? "de geselecteerde regio"} steeg van ${first?.value.toLocaleString("nl-NL") ?? "—"} naar ${last?.value.toLocaleString("nl-NL") ?? "—"} FTE in de periode ${first?.year}–${last?.year} (bron: CBS StatLine).`,
-    ["src-cbs"]
+    `${subject} in ${region} wijzigde van ${formatValue(first?.value ?? 0, unit)} (${first?.year}) naar ${formatValue(last?.value ?? 0, unit)} (${last?.year}).`,
+    ctx.indicator?.id === "ind-werkeloosheid" ? ["src-cbs", "src-uwv"] : ["src-cbs"]
   );
 
   add(
     "Statistische uitkomst",
-    `Het ${ctx.modelName}-model schat een historische groei van ${growthPct}% over ${sorted.length - 1} jaar. ${ctx.rSquared !== undefined ? `Het model verklaart ${(ctx.rSquared * 100).toFixed(1)}% van de variantie (R² = ${ctx.rSquared.toFixed(3)}).` : ""}`,
+    `Het ${ctx.modelName}-model schat een historische verandering van ${changePct}% over ${Math.max(sorted.length - 1, 0)} jaar.` +
+      (ctx.rSquared !== undefined ? ` R² = ${ctx.rSquared.toFixed(3)}.` : ""),
     ["src-cbs"]
   );
 
@@ -83,43 +98,48 @@ export function generateAIExplanations(ctx: AIExplanationContext): AIExplanation
     const endVal = realistic.values[realistic.values.length - 1];
     add(
       "Statistische uitkomst",
-      `Het realistische scenario projecteert ${endVal.value.toLocaleString("nl-NL")} FTE in ${endVal.year}, met een onzekerheidsmarge van ±${realistic.uncertaintyMargin}%.`,
-      ["src-cbs", "src-nea"]
+      `Realistisch scenario: ${formatValue(endVal.value, unit)} in ${endVal.year} (onzekerheid ±${realistic.uncertaintyMargin}%).`,
+      ctx.indicator?.id === "ind-werkeloosheid" ? ["src-cbs", "src-uwv"] : ["src-cbs"]
     );
   }
 
-  const conservative = ctx.scenarios.find((s) => s.type === "conservatief");
-  const optimistic = ctx.scenarios.find((s) => s.type === "optimistisch");
-  if (conservative && optimistic && realistic) {
+  if (ctx.indicator?.id === "ind-werkeloosheid") {
     add(
       "Interpretatie",
-      `De spreiding tussen conservatief (${conservative.values[conservative.values.length - 1].value.toLocaleString("nl-NL")} FTE) en optimistisch (${optimistic.values[optimistic.values.length - 1].value.toLocaleString("nl-NL")} FTE) scenario weerspiegelt onzekerheid rond migratie, investeringen en arbeidsaanbod.`,
-      ["src-nea"]
+      `Werkloosheid in ${region} wordt beïnvloed door regionale economische structuur, seizoenspatronen en landelijke conjunctuur. Gemeentelijke schattingen zijn gebaseerd op CBS-landelijke reeksen met regionale calibratie.`,
+      ["src-cbs", "src-uwv"]
+    );
+    add(
+      "Hypothese",
+      `Een stijgende werkloosheidstrend in ${region} kan samenhangen met mismatch op de arbeidsmarkt of afnemende vraag in dominante sectoren.`,
+      ["src-uwv"]
+    );
+  } else if (ctx.occupation) {
+    add(
+      "Hypothese",
+      `De trend voor ${ctx.occupation.name} in ${region} kan samenhangen met sectorale vraagontwikkeling en regionale demografie.`,
+      ["src-uwv", "src-cbs"]
+    );
+  } else {
+    add(
+      "Interpretatie",
+      `De analyse betreft de regionale arbeidsmarkt in ${region}, niet één specifiek beroep.`,
+      ["src-cbs"]
     );
   }
-
-  add(
-    "Hypothese",
-    `De aanhoudende groei in vacatures (UWV) gecombineerd met stabiele scholingsdeelname (SCP) suggereert dat het tekort aan ${ctx.occupation?.name?.toLowerCase() ?? "personeel"} structureel van aard kan zijn, niet alleen conjunctureel.`,
-    ["src-uwv", "src-scp"]
-  );
 
   add(
     "Adviesrichting",
-    `Voor ${AUDIENCE_TONE[ctx.audience]} besluitvorming: monitor kwartaalcijfers UWV naast jaarlijkse CBS-data en valideer aannames bij volgende NEA-prognose.`,
-    ["src-uwv", "src-cbs", "src-nea"]
-  );
-
-  add(
-    "Interpretatie",
-    `Opvallend patroon: de jaarlijkse groei versnelt licht in de laatste drie meetjaren, wat kan wijzen op cumulatieve vergrijzingsdruk in ${ctx.region?.name ?? "de regio"}.`,
-    ["src-cbs"]
+    `Voor ${AUDIENCE_TONE[ctx.audience]} besluitvorming: combineer deze indicator met aanvullende UWV- en CBS-data op gemeenteniveau.`,
+    ["src-uwv", "src-cbs"]
   );
 
   add(
     "Feit",
-    `Gebruikte databronnen: ${ctx.sourceNames.join(", ")}. Laatste synchronisatie varieert per bron (CBS: juni 2025, UWV: juni 2025).`,
-    ctx.sourceNames.map((n) => (n.includes("CBS") ? "src-cbs" : n.includes("UWV") ? "src-uwv" : "src-scp"))
+    `Gebruikte bronnen: ${ctx.sourceNames.join(", ")}.`,
+    ctx.sourceNames.map((n) =>
+      n.includes("UWV") ? "src-uwv" : n.includes("CBS") ? "src-cbs" : "src-scp"
+    )
   );
 
   return explanations;
@@ -127,10 +147,19 @@ export function generateAIExplanations(ctx: AIExplanationContext): AIExplanation
 
 export function generateNeutralSummary(ctx: AIExplanationContext): string {
   const region = ctx.region?.name ?? "de geselecteerde regio";
-  const occupation = ctx.occupation?.name ?? "het geselecteerde beroep";
+  const indicator = ctx.indicator?.name ?? "de indicator";
+  const unit = ctx.indicator?.unit ?? "";
   const realistic = ctx.scenarios.find((s) => s.type === "realistisch");
   const endYear = realistic?.values[realistic.values.length - 1]?.year ?? new Date().getFullYear() + 5;
   const endValue = realistic?.values[realistic.values.length - 1]?.value;
 
-  return `Op basis van CBS- en UWV-data voor ${occupation} in ${region} toont de historische analyse een gestage groei in werkgelegenheid (2015–2024). Het statistische ${ctx.modelName}-model projecteert voor het realistische scenario circa ${endValue?.toLocaleString("nl-NL") ?? "—"} FTE in ${endYear}. De prognose is gebaseerd op klassieke trendextrapolatie; alle claims zijn voorzien van bronverwijzing. Zie het evidence panel voor datasets, modellen en beperkingen.`;
+  if (ctx.indicator?.id === "ind-werkeloosheid") {
+    return `Prognose voor ${indicator.toLowerCase()} in ${region}: op basis van CBS-werkloosheidscijfers (nationaal, live) en regionale calibratie voor ${region}. Het ${ctx.modelName}-model projecteert voor het realistische scenario circa ${formatValue(endValue ?? 0, unit)} in ${endYear}. Dit is een regionale arbeidsmarktprognose — geen beroepsspecifieke analyse.`;
+  }
+
+  if (ctx.analysisScope === "regio" || !ctx.occupation) {
+    return `Prognose voor ${indicator.toLowerCase()} in ${region}. Het statistische ${ctx.modelName}-model projecteert voor het realistische scenario circa ${formatValue(endValue ?? 0, unit)} in ${endYear}. Regionale analyse zonder specifiek beroep.`;
+  }
+
+  return `Prognose voor ${ctx.occupation.name} in ${region} (${indicator.toLowerCase()}). Het ${ctx.modelName}-model projecteert circa ${formatValue(endValue ?? 0, unit)} in ${endYear}. Gebaseerd op klassieke trendextrapolatie met bronverwijzing.`;
 }

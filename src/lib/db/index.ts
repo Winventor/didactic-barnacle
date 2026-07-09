@@ -155,6 +155,7 @@ export async function executeSearchAsync(
 
   let liveNational: Awaited<ReturnType<typeof fetchLiveLabourContext>>["national"] = [];
   let liveRegional: Awaited<ReturnType<typeof fetchLiveLabourContext>>["regional"] = null;
+  let liveUnemployment: Awaited<ReturnType<typeof fetchLiveLabourContext>>["unemploymentNational"] = [];
   const provenanceNotes: string[] = [];
   let dataMode: DataProvenance["mode"] = "synthetic";
 
@@ -162,6 +163,7 @@ export async function executeSearchAsync(
     const live = await fetchLiveLabourContext(resolved.regionId, resolved.provinceId);
     liveNational = live.national;
     liveRegional = live.regional;
+    liveUnemployment = live.unemploymentNational;
     if (liveNational.length > 0) {
       dataMode = liveRegional ? "mixed" : "live";
       provenanceNotes.push(
@@ -173,14 +175,25 @@ export async function executeSearchAsync(
         );
       }
     }
+    if (liveUnemployment.length > 0 && resolved.indicatorId === "ind-werkeloosheid") {
+      dataMode = liveRegional ? "mixed" : "live";
+      provenanceNotes.push(
+        `Live CBS werkloosheidspercentage (${liveUnemployment.length} jaren, tabel 82809NED).`
+      );
+      provenanceNotes.push(
+        `Gemeentelijke prognose: CBS-landelijk met regionale calibratie voor ${getRegionById(resolved.regionId)?.name ?? resolved.regionId}.`
+      );
+    }
   } catch {
     provenanceNotes.push("CBS live API niet bereikbaar — fallback naar gesimuleerde tijdreeksen.");
     dataMode = "synthetic";
   }
 
-  provenanceNotes.push(
-    "Beroepsspecifieke FTE en vacatures zijn modelgebaseerd (geen live UWV-koppeling in v1)."
-  );
+  if (resolved.analysisScope === "beroep" && resolved.occupationId) {
+    provenanceNotes.push(
+      "Beroepsspecifieke reeksen zijn modelgebaseerd (geen live UWV-beroepkoppeling in v1)."
+    );
+  }
 
   const region = getRegionById(resolved.regionId)!;
   const occupation = resolved.occupationId
@@ -194,12 +207,14 @@ export async function executeSearchAsync(
     indicatorId: resolved.indicatorId,
     liveNational,
     liveRegional,
+    liveUnemployment,
   });
 
   const allIndicators = getRegionalIndicatorValues(
     resolved.regionId,
     liveNational,
-    liveRegional
+    liveRegional,
+    liveUnemployment
   );
 
   const model = mockForecastModels.find((m) => m.type === "linear_regression" && m.enabled)!;
@@ -232,9 +247,11 @@ export async function executeSearchAsync(
       d.regionIds.includes(resolved.regionId) ||
       (resolved.occupationId && d.occupationIds.includes(resolved.occupationId))
   );
-  const relevantSources: Source[] = mockSources.filter((s) =>
-    relevantDatasets.some((d) => d.sourceId === s.id) || (dataMode !== "synthetic" && s.id === "src-cbs")
-  );
+  const relevantSources: Source[] = mockSources.filter((s) => {
+    if (dataMode !== "synthetic" && s.id === "src-cbs") return true;
+    if (resolved.indicatorId === "ind-werkeloosheid" && s.id === "src-uwv") return true;
+    return relevantDatasets.some((d) => d.sourceId === s.id);
+  });
 
   const realistic = forecastResult.scenarios.find((s) => s.type === "realistisch");
 
@@ -283,6 +300,7 @@ export async function executeSearchAsync(
     sourceNames: relevantSources.map((s) => s.name),
     resultMode: resolved.resultMode,
     dataMode,
+    analysisScope: resolved.analysisScope,
   };
 
   let summary = generateNeutralSummary(aiCtx);
@@ -297,7 +315,12 @@ export async function executeSearchAsync(
   const dataProvenance: DataProvenance = {
     mode: dataMode,
     fetchedAt: new Date().toISOString(),
-    liveSourceIds: dataMode !== "synthetic" ? ["src-cbs"] : [],
+    liveSourceIds:
+      dataMode !== "synthetic"
+        ? resolved.indicatorId === "ind-werkeloosheid"
+          ? ["src-cbs", "src-uwv"]
+          : ["src-cbs"]
+        : [],
     notes: provenanceNotes,
   };
 
@@ -431,6 +454,15 @@ export function getRegionalComparison(occupationId: string, indicatorId: string)
   return provinces.map((regionId) => ({
     region: getRegionById(regionId)!,
     data: getHistoricalValuesResolved({ regionId, occupationId, indicatorId }),
+  }));
+}
+
+/** Vergelijk gemeenten binnen een provincie voor een regionale indicator */
+export function getMunicipalityComparison(indicatorId: string, provinceId: string) {
+  const gemeenten = mockRegions.filter((r) => r.parentId === provinceId);
+  return gemeenten.map((region) => ({
+    region,
+    data: getHistoricalValuesResolved({ regionId: region.id, indicatorId }),
   }));
 }
 
