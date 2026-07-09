@@ -47,6 +47,7 @@ const PLANNED_CONNECTORS: Connector[] = [
 ];
 
 function sourceToConnector(source: (typeof mockSources)[0]): Connector {
+  const isCBS = source.id === "src-cbs";
   return {
     id: `conn-${source.id.replace("src-", "")}`,
     name: source.name,
@@ -57,7 +58,7 @@ function sourceToConnector(source: (typeof mockSources)[0]): Connector {
     lastSync: source.lastSync,
     reliability: source.reliability,
     tesComponents: source.tesComponents,
-    status: "mock",
+    status: isCBS ? "active" : "mock",
   };
 }
 

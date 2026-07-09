@@ -203,6 +203,7 @@ export interface ExplainabilityDetail {
 
 export interface SearchResult {
   query: UserQuery;
+  resultMode: "forecast" | "shortage_ranking" | "sector_growth";
   summary: string;
   historicalData: HistoricalValue[];
   forecast: Forecast;
@@ -212,6 +213,33 @@ export interface SearchResult {
   evidence: EvidenceItem[];
   explainability: ExplainabilityDetail;
   sources: Source[];
+  dataProvenance: DataProvenance;
+  occupationRanking?: OccupationRankingItem[];
+  sectorRanking?: SectorRankingItem[];
+}
+
+export type DataMode = "live" | "mixed" | "synthetic";
+
+export interface DataProvenance {
+  mode: DataMode;
+  fetchedAt: string;
+  liveSourceIds: string[];
+  notes: string[];
+}
+
+export interface OccupationRankingItem {
+  occupationId: string;
+  occupationName: string;
+  shortageScore: number;
+  vacancyTrend: number;
+  employmentFte: number;
+}
+
+export interface SectorRankingItem {
+  sectorId: string;
+  sectorName: string;
+  projectedGrowthPct: number;
+  employmentFte: number;
 }
 
 export interface Connector {
