@@ -2,6 +2,12 @@
 
 Moderne, responsieve webapplicatie waarmee openbare beleidsdocumenten uit [OpenRaadsinformatie.nl](https://www.openraadsinformatie.nl) overzichtelijk kunnen worden doorzocht, gefilterd en geanalyseerd.
 
+## Live website
+
+**Nu online:** https://winventor.github.io/didactic-barnacle/
+
+Voor een eigen domein (bijv. `beleidsdashboard.nl`) zie [DEPLOYMENT.md](./DEPLOYMENT.md).
+
 ## Functies
 
 - **Dashboard** met statistieken en grafieken (Recharts)
