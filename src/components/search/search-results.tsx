@@ -11,6 +11,7 @@ import {
   TESRadarChart,
 } from "@/components/charts/labour-charts";
 import { EvidencePanel, ExplainabilityPanel } from "@/components/evidence/evidence-panel";
+import { DataProvenanceBanner } from "@/components/search/data-provenance-banner";
 import { getTESRadarData } from "@/lib/tes/interpretation-layer";
 import { getRegionById, getOccupationById, getIndicatorById, getRegionalComparison } from "@/lib/db";
 import { generateResearchReport } from "@/lib/export/report-generator";
@@ -29,9 +30,10 @@ export function SearchResults({ result }: SearchResultsProps) {
   const indicator = getIndicatorById(result.forecast.indicatorId);
   const radarData = getTESRadarData(result.tesInterpretations);
 
-  const regionalComparison = result.forecast.occupationId
-    ? getRegionalComparison(result.forecast.occupationId, result.forecast.indicatorId)
-    : [];
+  const regionalComparison =
+    result.resultMode === "forecast" && result.forecast.occupationId
+      ? getRegionalComparison(result.forecast.occupationId, result.forecast.indicatorId)
+      : [];
 
   const handleDownloadReport = () => {
     const markdown = generateResearchReport(result);
@@ -74,87 +76,145 @@ export function SearchResults({ result }: SearchResultsProps) {
             </p>
           </section>
 
-          {/* Historical */}
-          <section className="rounded-xl border border-border/60 p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-sm font-semibold">Historische ontwikkeling &amp; prognose</h2>
-            </div>
-            <p className="text-xs text-muted-foreground mb-4">
-              {occupation?.name} — {region?.name} — {indicator?.name} ({indicator?.unit})
-            </p>
-            <HistoricalForecastChart
-              historical={result.historicalData}
-              scenarios={result.scenarios}
-              unit={indicator?.unit}
-            />
-          </section>
+          {/* Data provenance */}
+          <DataProvenanceBanner provenance={result.dataProvenance} />
 
-          {/* Regional comparison */}
-          {regionalComparison.length > 0 && (
+          {/* Shortage ranking */}
+          {result.resultMode === "shortage_ranking" && result.occupationRanking && (
             <section className="rounded-xl border border-border/60 p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold">Regionale verschillen</h2>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                {regionalComparison.map(({ region: r, data }) => {
-                  const latest = [...data].sort((a, b) => b.year - a.year)[0];
-                  const isActive = r.id === result.forecast.regionId;
-                  return (
-                    <div
-                      key={r.id}
-                      className={`rounded-lg p-4 border ${isActive ? "border-foreground/30 bg-muted/50" : "border-border/40"}`}
-                    >
-                      <p className="text-sm font-medium">{r.name}</p>
-                      <p className="text-2xl font-semibold mt-1">
-                        {latest?.value.toLocaleString("nl-NL")}
+              <h2 className="text-sm font-semibold mb-4">Beroepen met hoogste tekortkans</h2>
+              <div className="space-y-3">
+                {result.occupationRanking.map((item, i) => (
+                  <div
+                    key={item.occupationId}
+                    className="flex items-center gap-4 rounded-lg border border-border/40 p-4"
+                  >
+                    <span className="text-lg font-semibold text-muted-foreground w-6">{i + 1}</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{item.occupationName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.employmentFte.toLocaleString("nl-NL")} FTE · vacaturetrend +{item.vacancyTrend}
                       </p>
-                      <p className="text-xs text-muted-foreground">{indicator?.unit} ({latest?.year})</p>
                     </div>
-                  );
-                })}
-              </div>
-              <div className="mt-6">
-                <NetherlandsMapHighlight activeProvince={region?.provinceCode} />
+                    <div className="text-right">
+                      <p className="text-sm font-semibold">{item.shortageScore}</p>
+                      <p className="text-xs text-muted-foreground">tekortscore</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
           )}
 
-          {/* Scenarios */}
-          <section className="rounded-xl border border-border/60 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold">Scenario&apos;s (5 jaar)</h2>
-              <Button variant="outline" size="sm" onClick={() => setShowExplainability(true)}>
-                <HelpCircle className="h-3.5 w-3.5 mr-1.5" />
-                Waarom deze voorspelling?
-              </Button>
-            </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {result.scenarios.map((scenario) => (
-                <div key={scenario.id} className="rounded-lg border border-border/40 p-4">
-                  <p className="text-sm font-medium capitalize mb-1">{scenario.type}</p>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Onzekerheid: ±{scenario.uncertaintyMargin}%
-                  </p>
-                  <ScenarioLineChart scenario={scenario} unit={indicator?.unit} />
-                  <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
-                    {scenario.explanation}
-                  </p>
-                  <details className="mt-3">
-                    <summary className="text-xs cursor-pointer text-muted-foreground hover:text-foreground">
-                      Aannames
-                    </summary>
-                    <ul className="mt-2 text-xs text-muted-foreground space-y-1">
-                      {scenario.assumptions.map((a) => (
-                        <li key={a}>• {a}</li>
-                      ))}
-                    </ul>
-                  </details>
+          {/* Sector growth ranking */}
+          {result.resultMode === "sector_growth" && result.sectorRanking && (
+            <section className="rounded-xl border border-border/60 p-6">
+              <h2 className="text-sm font-semibold mb-4">Sectorgroei (5-jaars trend)</h2>
+              <div className="space-y-3">
+                {result.sectorRanking.map((item, i) => (
+                  <div
+                    key={item.sectorId}
+                    className="flex items-center gap-4 rounded-lg border border-border/40 p-4"
+                  >
+                    <span className="text-lg font-semibold text-muted-foreground w-6">{i + 1}</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{item.sectorName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.employmentFte.toLocaleString("nl-NL")} FTE totaal
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold text-emerald-700">+{item.projectedGrowthPct}%</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Historical — forecast mode */}
+          {result.resultMode === "forecast" && (
+            <>
+              <section className="rounded-xl border border-border/60 p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <h2 className="text-sm font-semibold">Historische ontwikkeling &amp; prognose</h2>
                 </div>
-              ))}
-            </div>
-          </section>
+                <p className="text-xs text-muted-foreground mb-4">
+                  {occupation?.name ?? "Alle beroepen"} — {region?.name} — {indicator?.name} ({indicator?.unit})
+                </p>
+                <HistoricalForecastChart
+                  historical={result.historicalData}
+                  scenarios={result.scenarios}
+                  unit={indicator?.unit}
+                />
+              </section>
+
+              {regionalComparison.length > 0 && (
+                <section className="rounded-xl border border-border/60 p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <h2 className="text-sm font-semibold">Regionale verschillen</h2>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    {regionalComparison.map(({ region: r, data }) => {
+                      const latest = [...data].sort((a, b) => b.year - a.year)[0];
+                      const isActive = r.id === result.forecast.regionId;
+                      return (
+                        <div
+                          key={r.id}
+                          className={`rounded-lg p-4 border ${isActive ? "border-foreground/30 bg-muted/50" : "border-border/40"}`}
+                        >
+                          <p className="text-sm font-medium">{r.name}</p>
+                          <p className="text-2xl font-semibold mt-1">
+                            {latest?.value.toLocaleString("nl-NL")}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{indicator?.unit} ({latest?.year})</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-6">
+                    <NetherlandsMapHighlight activeProvince={region?.provinceCode} />
+                  </div>
+                </section>
+              )}
+
+              {result.scenarios.length > 0 && (
+                <section className="rounded-xl border border-border/60 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-sm font-semibold">Scenario&apos;s (5 jaar)</h2>
+                    <Button variant="outline" size="sm" onClick={() => setShowExplainability(true)}>
+                      <HelpCircle className="h-3.5 w-3.5 mr-1.5" />
+                      Waarom deze voorspelling?
+                    </Button>
+                  </div>
+                  <div className="grid gap-6 md:grid-cols-3">
+                    {result.scenarios.map((scenario) => (
+                      <div key={scenario.id} className="rounded-lg border border-border/40 p-4">
+                        <p className="text-sm font-medium capitalize mb-1">{scenario.type}</p>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          Onzekerheid: ±{scenario.uncertaintyMargin}%
+                        </p>
+                        <ScenarioLineChart scenario={scenario} unit={indicator?.unit} />
+                        <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
+                          {scenario.explanation}
+                        </p>
+                        <details className="mt-3">
+                          <summary className="text-xs cursor-pointer text-muted-foreground hover:text-foreground">
+                            Aannames
+                          </summary>
+                          <ul className="mt-2 text-xs text-muted-foreground space-y-1">
+                            {scenario.assumptions.map((a) => (
+                              <li key={a}>• {a}</li>
+                            ))}
+                          </ul>
+                        </details>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
+          )}
 
           {/* TES */}
           <section className="rounded-xl border border-border/60 p-6">

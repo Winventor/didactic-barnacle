@@ -2,12 +2,14 @@ import type {
   AIExplanation,
   AIStatementLabel,
   AudienceType,
+  DataMode,
   ForecastScenario,
   HistoricalValue,
   Region,
   Occupation,
   Indicator,
 } from "@/types";
+import type { QueryResultMode } from "@/lib/search/semantic-search";
 
 export interface AIExplanationContext {
   queryId: string;
@@ -21,6 +23,8 @@ export interface AIExplanationContext {
   modelName: string;
   rSquared?: number;
   sourceNames: string[];
+  resultMode?: QueryResultMode;
+  dataMode?: DataMode;
 }
 
 const AUDIENCE_TONE: Record<AudienceType, string> = {
@@ -43,6 +47,19 @@ export function generateAIExplanations(ctx: AIExplanationContext): AIExplanation
       sourceIds,
     });
   };
+
+  const dataLabel =
+    ctx.dataMode === "live"
+      ? "live CBS-data"
+      : ctx.dataMode === "mixed"
+        ? "live CBS-data gecombineerd met modelgebaseerde beroepsseries"
+        : "modelgebaseerde tijdreeksen";
+
+  add(
+    "Feit",
+    `Deze analyse gebruikt ${dataLabel} voor ${ctx.region?.name ?? "de geselecteerde regio"}${ctx.occupation ? ` — ${ctx.occupation.name}` : ""} (indicator: ${ctx.indicator?.name ?? "werkgelegenheid"}).`,
+    ctx.dataMode !== "synthetic" ? ["src-cbs"] : ["src-cbs"]
+  );
 
   const sorted = [...ctx.historicalData].sort((a, b) => a.year - b.year);
   const first = sorted[0];
