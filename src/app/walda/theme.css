@@ -1,0 +1,37 @@
+/* Walda Coaching — warm, professioneel coachingthema */
+.walda-coaching {
+  --background: 40 20% 98%;
+  --foreground: 25 20% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 25 20% 14%;
+  --primary: 25 45% 32%;
+  --primary-foreground: 40 20% 98%;
+  --secondary: 35 25% 94%;
+  --secondary-foreground: 25 30% 22%;
+  --muted: 35 18% 93%;
+  --muted-foreground: 25 10% 42%;
+  --accent: 35 30% 90%;
+  --accent-foreground: 25 30% 22%;
+  --border: 35 15% 88%;
+  --input: 35 15% 88%;
+  --ring: 25 45% 32%;
+  --radius: 0.75rem;
+}
+
+.walda-coaching.dark {
+  --background: 25 18% 9%;
+  --foreground: 40 15% 94%;
+  --card: 25 16% 12%;
+  --card-foreground: 40 15% 94%;
+  --primary: 35 40% 62%;
+  --primary-foreground: 25 20% 10%;
+  --secondary: 25 14% 18%;
+  --secondary-foreground: 40 15% 94%;
+  --muted: 25 14% 18%;
+  --muted-foreground: 35 10% 62%;
+  --accent: 25 14% 20%;
+  --accent-foreground: 40 15% 94%;
+  --border: 25 12% 22%;
+  --input: 25 12% 22%;
+  --ring: 35 40% 62%;
+}
