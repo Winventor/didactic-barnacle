@@ -1,0 +1,17 @@
+export const THEMES = [
+  "Wonen",
+  "Mobiliteit",
+  "Klimaat & Energie",
+  "Natuur & Water",
+  "Economie",
+  "Zorg & Welzijn",
+  "Onderwijs",
+  "Veiligheid",
+  "Ruimtelijke Ordening",
+  "Financiën",
+  "Participatie",
+  "Digitalisering",
+  "Cultuur & Recreatie",
+  "Arbeidsmarkt",
+  "Circulaire Economie",
+] as const;
