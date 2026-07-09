@@ -104,6 +104,7 @@ export const mockIndicators: Indicator[] = [
   { id: "ind-scholing", name: "Scholingsdeelname", unit: "%", description: "Percentage werknemers met formele bijscholing", tesComponentId: "tes-competentie" },
   { id: "ind-verzuim", name: "Verzuimpercentage", unit: "%", description: "Percentage ziekteverzuim", tesComponentId: "tes-verbondenheid" },
   { id: "ind-mobiliteit", name: "Intersectorale mobiliteit", unit: "index", description: "Index van baanwisselingen tussen sectoren", tesComponentId: "tes-bereidwilligheid" },
+  { id: "ind-werkeloosheid", name: "Werkeloosheidspercentage", unit: "%", description: "Percentage werkloze beroepsbevolking (UWV/CBS)", tesComponentId: "tes-bereidwilligheid" },
 ];
 
 export const mockTESComponents: TESComponent[] = [

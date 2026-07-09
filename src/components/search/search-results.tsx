@@ -13,7 +13,7 @@ import {
 import { EvidencePanel, ExplainabilityPanel } from "@/components/evidence/evidence-panel";
 import { DataProvenanceBanner } from "@/components/search/data-provenance-banner";
 import { getTESRadarData } from "@/lib/tes/interpretation-layer";
-import { getRegionById, getOccupationById, getIndicatorById, getRegionalComparison } from "@/lib/db";
+import { getRegionById, getOccupationById, getIndicatorById, getRegionalComparison, getMunicipalityComparison } from "@/lib/db";
 import { generateResearchReport } from "@/lib/export/report-generator";
 import { mockTESComponents } from "@/data/mock";
 
@@ -31,8 +31,13 @@ export function SearchResults({ result }: SearchResultsProps) {
   const radarData = getTESRadarData(result.tesInterpretations);
 
   const regionalComparison =
-    result.resultMode === "forecast" && result.forecast.occupationId
-      ? getRegionalComparison(result.forecast.occupationId, result.forecast.indicatorId)
+    result.resultMode === "forecast"
+      ? result.forecast.occupationId
+        ? getRegionalComparison(result.forecast.occupationId, result.forecast.indicatorId)
+        : getMunicipalityComparison(
+            result.forecast.indicatorId,
+            region?.parentId ?? result.forecast.regionId
+          )
       : [];
 
   const handleDownloadReport = () => {
@@ -139,7 +144,10 @@ export function SearchResults({ result }: SearchResultsProps) {
                   <h2 className="text-sm font-semibold">Historische ontwikkeling &amp; prognose</h2>
                 </div>
                 <p className="text-xs text-muted-foreground mb-4">
-                  {occupation?.name ?? "Alle beroepen"} — {region?.name} — {indicator?.name} ({indicator?.unit})
+                  {result.forecast.occupationId
+                    ? `${occupation?.name} — `
+                    : ""}
+                  {region?.name} — {indicator?.name} ({indicator?.unit})
                 </p>
                 <HistoricalForecastChart
                   historical={result.historicalData}
@@ -152,7 +160,11 @@ export function SearchResults({ result }: SearchResultsProps) {
                 <section className="rounded-xl border border-border/60 p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <h2 className="text-sm font-semibold">Regionale verschillen</h2>
+                    <h2 className="text-sm font-semibold">
+                      {result.forecast.occupationId
+                        ? "Regionale verschillen"
+                        : "Gemeenten in de provincie"}
+                    </h2>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-3">
                     {regionalComparison.map(({ region: r, data }) => {

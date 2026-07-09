@@ -34,7 +34,23 @@ const SYNONYMS: Record<string, { type: SearchEntityType; terms: string[]; sector
   leiderschap: { type: "leiderschap", terms: ["leiderschap", "leidinggevende", "management", "manager", "zorgmanager"] },
   inzetbaarheid: { type: "duurzame_inzetbaarheid", terms: ["duurzame inzetbaarheid", "verzuim", "inzetbaarheid", "werkvermogen"] },
   arbeidsmarkt: { type: "arbeidsmarkt", terms: ["arbeidsmarkt", "vacature", "krapte", "tekort", "werkgelegenheid"] },
+  werkloosheid: {
+    type: "arbeidsmarkt",
+    terms: ["werkeloosheid", "werkloosheid", "werkloos", "werklozen", "uvw"],
+  },
 };
+
+/** Indicatoren op gemeente/regio-niveau — geen beroep nodig */
+export const MACRO_INDICATOR_IDS = new Set([
+  "ind-werkeloosheid",
+  "ind-verzuim",
+  "ind-mobiliteit",
+  "ind-scholing",
+]);
+
+export function isMacroIndicator(indicatorId: string): boolean {
+  return MACRO_INDICATOR_IDS.has(indicatorId);
+}
 
 const REGION_ALIASES: Record<string, string> = {
   drenthe: "prov-drenthe",
@@ -44,7 +60,11 @@ const REGION_ALIASES: Record<string, string> = {
   eindhoven: "gem-eindhoven",
   assen: "gem-assen",
   emmen: "gem-emmen",
+  hoogeveen: "gem-hoogeveen",
+  meppel: "gem-meppel",
   tilburg: "gem-tilburg",
+  amersfoort: "gem-amersfoort",
+  zeist: "gem-zeist",
 };
 
 export type QueryResultMode = "forecast" | "shortage_ranking" | "sector_growth";
@@ -58,6 +78,7 @@ export interface ResolvedQuery {
   provinceId: string;
   sectorId?: string;
   indicatorId: string;
+  analysisScope: "beroep" | "regio";
 }
 
 function normalize(text: string): string {
@@ -94,6 +115,13 @@ function detectIndicator(normalized: string, entities: SearchEntity[]): string {
   const matched = entities.find((e) => e.matchedId?.startsWith("ind-"));
   if (matched?.matchedId) return matched.matchedId;
 
+  if (
+    normalized.includes("werkeloosheid") ||
+    normalized.includes("werkloosheid") ||
+    normalized.includes("werkloos")
+  ) {
+    return "ind-werkeloosheid";
+  }
   if (normalized.includes("vacature") || normalized.includes("tekort") || normalized.includes("krapte")) {
     return "ind-vacatures";
   }
@@ -183,19 +211,43 @@ export function resolveQuery(query: string): ResolvedQuery {
   }
 
   for (const indicator of mockIndicators) {
-    if (normalized.includes(normalize(indicator.name))) {
-      entities.push({ type: "arbeidsmarkt", value: indicator.name, matchedId: indicator.id, confidence: 0.75 });
+    const nameNorm = normalize(indicator.name);
+    const keywords = [nameNorm, ...nameNorm.split(" ")].filter((k) => k.length >= 5);
+    for (const kw of keywords) {
+      if (normalized.includes(kw)) {
+        entities.push({ type: "arbeidsmarkt", value: indicator.name, matchedId: indicator.id, confidence: 0.85 });
+        break;
+      }
+    }
+    if (indicator.id === "ind-werkeloosheid") {
+      if (normalized.includes("werkloos")) {
+        entities.push({
+          type: "arbeidsmarkt",
+          value: indicator.name,
+          matchedId: indicator.id,
+          confidence: 0.95,
+        });
+      }
     }
   }
 
   const deduped = dedupeEntities(entities);
   const resultMode = detectResultMode(normalized);
+  const indicatorId = detectIndicator(normalized, deduped);
 
   let occupationId = deduped.find((e) => e.type === "beroep")?.matchedId;
   const sectorId = deduped.find((e) => e.type === "sector")?.matchedId;
+  const explicitBeroep = Boolean(occupationId);
 
-  if (!occupationId && sectorId) {
-    occupationId = mockOccupations.find((o) => o.sectorId === sectorId)?.id;
+  if (!occupationId && sectorId && !isMacroIndicator(indicatorId) && explicitBeroep === false) {
+    const sectorMentioned = deduped.some((e) => e.type === "sector" && e.confidence >= 0.85);
+    if (sectorMentioned) {
+      occupationId = mockOccupations.find((o) => o.sectorId === sectorId)?.id;
+    }
+  }
+
+  if (isMacroIndicator(indicatorId) && !explicitBeroep) {
+    occupationId = undefined;
   }
 
   let regionId =
@@ -210,17 +262,20 @@ export function resolveQuery(query: string): ResolvedQuery {
   }
 
   const provinceId = resolveProvinceId(regionId);
-  const indicatorId = detectIndicator(normalized, deduped);
+
+  const analysisScope: "beroep" | "regio" =
+    occupationId && !isMacroIndicator(indicatorId) ? "beroep" : "regio";
 
   return {
     originalQuery: query,
     entities: deduped,
     resultMode,
-    occupationId,
+    occupationId: analysisScope === "beroep" ? occupationId : undefined,
     regionId,
     provinceId,
     sectorId,
     indicatorId,
+    analysisScope,
   };
 }
 
@@ -248,6 +303,7 @@ export function getExampleQueries(): string[] {
     "Voorspel softwareontwikkelaars in Noord-Brabant",
     "Vacaturedruk voor docenten in Utrecht",
     "Voorspel de ontwikkeling van zorgpersoneel in Drenthe.",
+    "Prognose werkeloosheid in Hoogeveen",
     "Wat betekent verzuim in Emmen volgens het TES-model?",
   ];
 }

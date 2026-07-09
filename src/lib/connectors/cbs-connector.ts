@@ -12,12 +12,21 @@ export const CBS_GEMEENTE_CODES: Record<string, string> = {
 };
 
 export const CBS_TABLE_LABOUR = "84799NED";
+export const CBS_TABLE_UNEMPLOYMENT = "82809NED";
 export const CBS_API_BASE = "https://opendata.cbs.nl/ODataApi/OData";
 
 export interface CBSLabourPoint {
   year: number;
   labourParticipationPct: number;
   population: number;
+  regionLabel: string;
+  sourceId: "src-cbs";
+  isLive: true;
+}
+
+export interface CBSUnemploymentPoint {
+  year: number;
+  unemploymentPct: number;
   regionLabel: string;
   sourceId: "src-cbs";
   isLive: true;
@@ -36,8 +45,8 @@ function parseCBSYear(period: string): number | null {
   return match ? parseInt(match[1], 10) : null;
 }
 
-async function fetchCBSRows(filter: string, top = 50): Promise<CBSTypedRow[]> {
-  const url = `${CBS_API_BASE}/${CBS_TABLE_LABOUR}/TypedDataSet?$filter=${encodeURIComponent(filter)}&$top=${top}&$format=json`;
+async function fetchCBSRows(tableId: string, filter: string, top = 50): Promise<CBSTypedRow[]> {
+  const url = `${CBS_API_BASE}/${tableId}/TypedDataSet?$filter=${encodeURIComponent(filter)}&$top=${top}&$format=json`;
   const response = await fetch(url, { headers: { Accept: "application/json" } });
   if (!response.ok) {
     throw new Error(`CBS API ${response.status}`);
@@ -57,7 +66,7 @@ export async function fetchNationalLabourSeries(
   }).join(" or ");
 
   const filter = `WijkenEnBuurten eq 'NL00      ' and (${yearFilters})`;
-  const rows = await fetchCBSRows(filter, 20);
+  const rows = await fetchCBSRows(CBS_TABLE_LABOUR, filter, 20);
   return rows
     .map((row) => {
       const year = row.Perioden ? parseCBSYear(row.Perioden) : null;
@@ -82,7 +91,7 @@ export async function fetchMunicipalityLabour(
 ): Promise<CBSLabourPoint | null> {
   const padded = gemeenteCode.padEnd(6, " ");
   const filter = `Codering_3 eq '${padded}' and Perioden eq '${year}JJ00'`;
-  const rows = await fetchCBSRows(filter, 1);
+  const rows = await fetchCBSRows(CBS_TABLE_LABOUR, filter, 1);
   const row = rows[0];
   if (!row?.Nettoarbeidsparticipatie_67) return null;
   return {
@@ -125,7 +134,10 @@ export async function fetchProvinceLabourProxy(
 }
 
 export async function fetchLiveLabourContext(regionId: string, parentProvinceId?: string) {
-  const national = await fetchNationalLabourSeries(2015, 2024);
+  const [national, unemploymentNational] = await Promise.all([
+    fetchNationalLabourSeries(2015, 2024),
+    fetchNationalUnemploymentSeries(2015, 2024).catch(() => [] as CBSUnemploymentPoint[]),
+  ]);
   let regional: CBSLabourPoint | null = null;
 
   const gemeenteCode = CBS_GEMEENTE_CODES[regionId];
@@ -145,5 +157,42 @@ export async function fetchLiveLabourContext(regionId: string, parentProvinceId?
     regional = await fetchProvinceLabourProxy(parentProvinceId, gemeenten, 2023);
   }
 
-  return { national, regional };
+  return { national, regional, unemploymentNational };
+}
+
+interface CBSUnemploymentRow {
+  Perioden?: string;
+  Werkloosheidspercentage_21?: number;
+}
+
+/** Live nationaal werkloosheidspercentage (CBS Arbeidsdeelname) */
+export async function fetchNationalUnemploymentSeries(
+  startYear = 2015,
+  endYear = 2024
+): Promise<CBSUnemploymentPoint[]> {
+  const yearFilters = Array.from({ length: endYear - startYear + 1 }, (_, i) => {
+    const y = startYear + i;
+    return `Perioden eq '${y}JJ00'`;
+  }).join(" or ");
+
+  const filter = `Leeftijd eq '52052' and Geslacht eq 'T001038' and (${yearFilters})`;
+  const url = `${CBS_API_BASE}/${CBS_TABLE_UNEMPLOYMENT}/TypedDataSet?$filter=${encodeURIComponent(filter)}&$top=30&$format=json`;
+  const response = await fetch(url, { headers: { Accept: "application/json" } });
+  if (!response.ok) throw new Error(`CBS unemployment API ${response.status}`);
+
+  const data = (await response.json()) as { value?: CBSUnemploymentRow[] };
+  return (data.value ?? [])
+    .map((row) => {
+      const year = row.Perioden ? parseCBSYear(row.Perioden) : null;
+      if (!year || row.Werkloosheidspercentage_21 == null) return null;
+      return {
+        year,
+        unemploymentPct: row.Werkloosheidspercentage_21,
+        regionLabel: "Nederland",
+        sourceId: "src-cbs" as const,
+        isLive: true as const,
+      };
+    })
+    .filter((p): p is CBSUnemploymentPoint => p !== null)
+    .sort((a, b) => a.year - b.year);
 }
