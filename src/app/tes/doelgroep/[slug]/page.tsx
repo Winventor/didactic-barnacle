@@ -1,6 +1,5 @@
-import { SiteHeader } from "@/components/layout/site-header";
+import { SiteHeader, AUDIENCES } from "@/components/layout/site-header";
 import { SearchBar } from "@/components/search/search-bar";
-import { AUDIENCES } from "@/components/layout/site-header";
 import type { AudienceType } from "@/types";
 
 interface PageProps {
@@ -30,7 +29,7 @@ const AUDIENCE_CONTENT: Record<AudienceType, { title: string; description: strin
   },
 };
 
-export default async function DoelgroepPage({ params }: PageProps) {
+export default async function TesDoelgroepPage({ params }: PageProps) {
   const { slug } = await params;
   const audience = AUDIENCES.find((a) => a.slug === slug);
   const content = AUDIENCE_CONTENT[slug as AudienceType];

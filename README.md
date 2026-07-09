@@ -1,53 +1,57 @@
-# TES Labour Intelligence Platform v1.0
+# Beleidsdashboard OpenRaadsinformatie
 
-AI-ondersteund onderzoeksinstrument voor arbeid, loopbaan, carrière, leiderschap en duurzame inzetbaarheid.
+Moderne, responsieve webapplicatie waarmee openbare beleidsdocumenten uit [OpenRaadsinformatie.nl](https://www.openraadsinformatie.nl) overzichtelijk kunnen worden doorzocht, gefilterd en geanalyseerd.
 
-## Kernprincipe
+## Live website
 
-> **Statistische modellen doen de voorspelling.** AI legt de voorspelling uit. TES interpreteert de betekenis.
+**Open nu in je browser:** https://winventor.github.io/didactic-barnacle/
 
-## Starten
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Winventor/didactic-barnacle)
+
+Klik op de knop hierboven voor een eigen URL op Render (bijv. `beleidsdashboard-openraadsinformatie.onrender.com`) — duurt ~2 minuten, geen domeinnaam nodig.
+
+Voor een eigen domein (bijv. `beleidsdashboard.nl`) zie [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+## Functies
+
+- **Dashboard** met statistieken en grafieken (Recharts)
+- **Drie beleidslagen**: Beleidsvorming, Besluitvorming, Uitvoering & Evaluatie
+- **Uitgebreide filters**: beleidslaag, documentsoort, bestuurslaag, organisatie, provincie, gemeente, waterschap, thema, status, portefeuillehouder, periode
+- **Resultatentabel** met sortering, paginering, kolombeheer en verslepen (TanStack Table)
+- **Detailpagina** per document met metadata en tekstfragmenten
+- **Export** naar CSV, Excel en JSON
+- **Donker/licht thema**
+- **280 mockdocumenten** verdeeld over gemeenten, provincies en waterschappen
+
+## Lokaal draaien
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000) voor het beleidsdashboard.
 
-## Demo-query
+---
 
-> Voorspel de ontwikkeling van zorgpersoneel in Drenthe.
+## TES Labour Intelligence Platform (aparte website)
 
-Of klik op een voorbeeldvraag op de homepage.
+In dezelfde repository staat ook het **TES Labour Intelligence Platform** — een apart onderzoeksplatform voor arbeidsmarktprognoses en TES-analyse.
 
-## Architectuur
+| Website | Route | Beschrijving |
+|---------|-------|--------------|
+| Beleidsdashboard | `/` | OpenRaadsinformatie beleidsdocumenten |
+| TES Labour Intelligence | `/tes` | Arbeidsmarktprognoses en TES-analyse |
 
-Zie [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) voor de volledige architectuurdocumentatie.
+**TES starten:** [http://localhost:3000/tes](http://localhost:3000/tes)
 
-### Modules
+Demo-query: *Voorspel de ontwikkeling van zorgpersoneel in Drenthe.*
 
-| Module | Verantwoordelijkheid |
-|--------|---------------------|
-| `ForecastEngine` | Alle statistische voorspellingen |
-| `AI Explanation Layer` | Uitleg met labels (Feit, Interpretatie, etc.) |
-| `TES Interpretation Layer` | Kwalitatieve TES-analyse (6 componenten) |
-| `Evidence Panel` | Bronnen, datasets, beperkingen |
-| `Connector Registry` | CBS, UWV, SCP, NEA (+ gepland: DUO, Eurostat, ESCO) |
+Zie [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) en [docs/DATABASE.md](docs/DATABASE.md) voor TES-architectuur.
 
-### Doelgroepen
+## Techniek
 
-- Beleidsmakers
-- Werkgevers / HR
-- Loopbaanprofessionals
-- Onderzoekers
-
-## Technologie
-
-- Next.js 15, React 19, TypeScript
-- Recharts voor interactieve visualisaties
-- Tailwind CSS 4
-
-## Licentie
-
-Privé — TES Research Platform
+- Next.js 15 (App Router) + TypeScript + Tailwind CSS v4
+- shadcn/ui componenten + Lucide Icons
+- TanStack Table + React Query
+- Recharts voor visualisaties

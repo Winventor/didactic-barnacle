@@ -16,7 +16,7 @@ const VALID_AUDIENCES: AudienceType[] = [
   "onderzoekers",
 ];
 
-export default async function ZoekenPage({ searchParams }: PageProps) {
+export default async function TesZoekenPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const query = params.q ?? "Voorspel de ontwikkeling van zorgpersoneel in Drenthe.";
   const audience = VALID_AUDIENCES.includes(params.audience as AudienceType)

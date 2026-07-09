@@ -23,7 +23,7 @@ export function SearchBar({ defaultValue = "", audience = "beleidsmakers", size 
     const searchQuery = (q ?? query).trim();
     if (!searchQuery) return;
     const params = new URLSearchParams({ q: searchQuery, audience });
-    router.push(`/zoeken?${params.toString()}`);
+    router.push(`/tes/zoeken?${params.toString()}`);
   };
 
   const isLarge = size === "large";

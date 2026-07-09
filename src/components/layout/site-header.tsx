@@ -12,7 +12,7 @@ export function SiteHeader() {
   return (
     <header className="border-b border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-3 group">
+        <Link href="/tes" className="flex items-center gap-3 group">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background text-sm font-semibold">
             TES
           </div>
@@ -25,7 +25,7 @@ export function SiteHeader() {
           {AUDIENCES.map((a) => (
             <Link
               key={a.slug}
-              href={`/doelgroep/${a.slug}`}
+              href={`/tes/doelgroep/${a.slug}`}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {a.label}
@@ -43,7 +43,7 @@ export function AudienceCards({ className }: { className?: string }) {
       {AUDIENCES.map((a) => (
         <Link
           key={a.slug}
-          href={`/doelgroep/${a.slug}`}
+          href={`/tes/doelgroep/${a.slug}`}
           className="group rounded-xl border border-border/60 p-5 hover:border-foreground/20 hover:shadow-sm transition-all"
         >
           <p className="text-sm font-medium group-hover:text-foreground">{a.label}</p>

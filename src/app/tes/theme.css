@@ -1,0 +1,37 @@
+/* TES Labour Intelligence — rustig, professioneel thema */
+.tes-platform {
+  --background: 0 0% 99%;
+  --foreground: 220 15% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 15% 12%;
+  --primary: 220 15% 18%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 220 10% 96%;
+  --secondary-foreground: 220 15% 18%;
+  --muted: 220 10% 96%;
+  --muted-foreground: 220 8% 46%;
+  --accent: 220 10% 94%;
+  --accent-foreground: 220 15% 18%;
+  --border: 220 10% 90%;
+  --input: 220 10% 90%;
+  --ring: 220 15% 18%;
+  --radius: 0.625rem;
+}
+
+.tes-platform.dark {
+  --background: 220 15% 8%;
+  --foreground: 0 0% 96%;
+  --card: 220 15% 10%;
+  --card-foreground: 0 0% 96%;
+  --primary: 0 0% 96%;
+  --primary-foreground: 220 15% 12%;
+  --secondary: 220 12% 16%;
+  --secondary-foreground: 0 0% 96%;
+  --muted: 220 12% 16%;
+  --muted-foreground: 220 8% 60%;
+  --accent: 220 12% 18%;
+  --accent-foreground: 0 0% 96%;
+  --border: 220 12% 20%;
+  --input: 220 12% 20%;
+  --ring: 0 0% 80%;
+}

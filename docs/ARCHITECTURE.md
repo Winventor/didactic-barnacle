@@ -8,7 +8,16 @@ Het TES Labour Intelligence Platform is een AI-ondersteund onderzoeksinstrument 
 
 > Statistische modellen doen de voorspelling. AI legt de voorspelling uit. TES interpreteert de betekenis.
 
-### Mappenstructuur
+### Routes
+
+| Website | Route |
+|---------|-------|
+| Beleidsdashboard OpenRaadsinformatie | `/` |
+| TES Labour Intelligence | `/tes` |
+| TES zoekresultaten | `/tes/zoeken` |
+| TES doelgroepen | `/tes/doelgroep/[slug]` |
+
+De twee websites delen dezelfde Next.js-app maar zijn volledig gescheiden qua routes, layout en functionaliteit.
 
 ```
 src/
