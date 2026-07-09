@@ -30,7 +30,24 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) voor het beleidsdashboard.
+
+---
+
+## TES Labour Intelligence Platform (aparte website)
+
+In dezelfde repository staat ook het **TES Labour Intelligence Platform** — een apart onderzoeksplatform voor arbeidsmarktprognoses en TES-analyse.
+
+| Website | Route | Beschrijving |
+|---------|-------|--------------|
+| Beleidsdashboard | `/` | OpenRaadsinformatie beleidsdocumenten |
+| TES Labour Intelligence | `/tes` | Arbeidsmarktprognoses en TES-analyse |
+
+**TES starten:** [http://localhost:3000/tes](http://localhost:3000/tes)
+
+Demo-query: *Voorspel de ontwikkeling van zorgpersoneel in Drenthe.*
+
+Zie [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) en [docs/DATABASE.md](docs/DATABASE.md) voor TES-architectuur.
 
 ## Techniek
 
@@ -38,49 +55,3 @@ Open [http://localhost:3000](http://localhost:3000).
 - shadcn/ui componenten + Lucide Icons
 - TanStack Table + React Query
 - Recharts voor visualisaties
-- Modulaire datalaag (mock provider, Supabase-ready types)
-
-## Architectuur
-
-```
-src/
-├── app/                    # Pagina's (dashboard + detail)
-├── components/             # UI-componenten
-│   ├── dashboard/          # Statistieken en grafieken
-│   ├── documents/          # Tabel, tabs, detail
-│   ├── filters/            # Filterbalk
-│   ├── layout/             # Header, thema
-│   └── ui/                 # shadcn/ui basis
-├── hooks/                  # React Query + filter hooks
-├── lib/
-│   ├── classification/     # Automatische beleidslaag-classificatie
-│   ├── constants/          # Documentsoorten, thema's, organisaties
-│   ├── data/               # Data provider (mock → API/Supabase)
-│   ├── export/             # CSV, Excel, JSON export
-│   ├── filters/            # Filterlogica
-│   └── stats/              # Statistieken en grafiekdata
-└── types/                  # TypeScript interfaces
-```
-
-## Toekomstige uitbreidingen
-
-De code is voorbereid op:
-
-- API-koppeling OpenRaadsinformatie
-- Scraper
-- Supabase database
-- Elasticsearch
-- AI-samenvattingen, classificatie en chat
-- Favorieten, tags, notities en dossierbewaking
-
-## Deployment
-
-### GitHub Pages
-
-```bash
-GITHUB_PAGES=true npm run build
-```
-
-### Render.com
-
-Zie `render.yaml` voor blueprint-configuratie.
