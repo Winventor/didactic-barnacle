@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: raadsinformatie-overzicht
+    runtime: static
+    plan: free
+    buildCommand: npm install && STATIC_EXPORT=true npm run build
+    staticPublishPath: out

@@ -10,6 +10,7 @@ import type {
   SearchResult,
 } from "@/lib/types";
 import { DOCUMENT_TYPES } from "@/lib/types";
+import { fetchMunicipalities, searchRaadsstukken } from "@/lib/ori-api";
 import { Filters } from "./Filters";
 import { RaadsstukkenTable } from "./RaadsstukkenTable";
 import { Pagination } from "./Pagination";
@@ -65,10 +66,8 @@ export function RaadsstukkenOverzicht() {
 
     async function loadMunicipalities() {
       try {
-        const response = await fetch("/api/raadsstukken", { method: "POST" });
-        if (!response.ok) throw new Error("Gemeenten laden mislukt");
-        const json = await response.json();
-        if (!cancelled) setMunicipalities(json.municipalities ?? []);
+        const list = await fetchMunicipalities();
+        if (!cancelled) setMunicipalities(list);
       } catch {
         if (!cancelled) setMunicipalities([]);
       }
@@ -87,20 +86,14 @@ export function RaadsstukkenOverzicht() {
       setLoading(true);
       setError(null);
 
-      const params = new URLSearchParams();
-      if (filters.type !== "alle") params.set("type", filters.type);
-      if (filters.status !== "alle") params.set("status", filters.status);
-      if (filters.gemeente) params.set("gemeente", filters.gemeente);
-      if (filters.q) params.set("q", filters.q);
-      if (filters.page > 1) params.set("page", String(filters.page));
-
       try {
-        const response = await fetch(`/api/raadsstukken?${params.toString()}`);
-        if (!response.ok) {
-          const json = await response.json().catch(() => ({}));
-          throw new Error(json.error ?? "Gegevens laden mislukt");
-        }
-        const json: SearchResult = await response.json();
+        const json = await searchRaadsstukken({
+          type: filters.type,
+          status: filters.status,
+          gemeente: filters.gemeente || undefined,
+          zoekterm: filters.q || undefined,
+          page: filters.page,
+        });
         if (!cancelled) setData(json);
       } catch (err) {
         if (!cancelled) {
