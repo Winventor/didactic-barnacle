@@ -4,9 +4,9 @@ import { QueryProvider } from "@/components/providers/query-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Beleidsdashboard OpenRaadsinformatie",
+  title: "TES Labour Intelligence Platform",
   description:
-    "Doorzoek, filter en analyseer openbare beleidsdocumenten uit OpenRaadsinformatie.nl",
+    "AI-ondersteund onderzoeksinstrument voor arbeid, loopbaan, carrière, leiderschap en duurzame inzetbaarheid. Evidence-first, explainable-first.",
 };
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
       <body className="min-h-screen antialiased">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >

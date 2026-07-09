@@ -1,86 +1,53 @@
-# Beleidsdashboard OpenRaadsinformatie
+# TES Labour Intelligence Platform v1.0
 
-Moderne, responsieve webapplicatie waarmee openbare beleidsdocumenten uit [OpenRaadsinformatie.nl](https://www.openraadsinformatie.nl) overzichtelijk kunnen worden doorzocht, gefilterd en geanalyseerd.
+AI-ondersteund onderzoeksinstrument voor arbeid, loopbaan, carrière, leiderschap en duurzame inzetbaarheid.
 
-## Live website
+## Kernprincipe
 
-**Open nu in je browser:** https://winventor.github.io/didactic-barnacle/
+> **Statistische modellen doen de voorspelling.** AI legt de voorspelling uit. TES interpreteert de betekenis.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Winventor/didactic-barnacle)
-
-Klik op de knop hierboven voor een eigen URL op Render (bijv. `beleidsdashboard-openraadsinformatie.onrender.com`) — duurt ~2 minuten, geen domeinnaam nodig.
-
-Voor een eigen domein (bijv. `beleidsdashboard.nl`) zie [DEPLOYMENT.md](./DEPLOYMENT.md).
-
-## Functies
-
-- **Dashboard** met statistieken en grafieken (Recharts)
-- **Drie beleidslagen**: Beleidsvorming, Besluitvorming, Uitvoering & Evaluatie
-- **Uitgebreide filters**: beleidslaag, documentsoort, bestuurslaag, organisatie, provincie, gemeente, waterschap, thema, status, portefeuillehouder, periode
-- **Resultatentabel** met sortering, paginering, kolombeheer en verslepen (TanStack Table)
-- **Detailpagina** per document met metadata en tekstfragmenten
-- **Export** naar CSV, Excel en JSON
-- **Donker/licht thema**
-- **280 mockdocumenten** verdeeld over gemeenten, provincies en waterschappen
-
-## Lokaal draaien
+## Starten
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000)
 
-## Techniek
+## Demo-query
 
-- Next.js 15 (App Router) + TypeScript + Tailwind CSS v4
-- shadcn/ui componenten + Lucide Icons
-- TanStack Table + React Query
-- Recharts voor visualisaties
-- Modulaire datalaag (mock provider, Supabase-ready types)
+> Voorspel de ontwikkeling van zorgpersoneel in Drenthe.
+
+Of klik op een voorbeeldvraag op de homepage.
 
 ## Architectuur
 
-```
-src/
-├── app/                    # Pagina's (dashboard + detail)
-├── components/             # UI-componenten
-│   ├── dashboard/          # Statistieken en grafieken
-│   ├── documents/          # Tabel, tabs, detail
-│   ├── filters/            # Filterbalk
-│   ├── layout/             # Header, thema
-│   └── ui/                 # shadcn/ui basis
-├── hooks/                  # React Query + filter hooks
-├── lib/
-│   ├── classification/     # Automatische beleidslaag-classificatie
-│   ├── constants/          # Documentsoorten, thema's, organisaties
-│   ├── data/               # Data provider (mock → API/Supabase)
-│   ├── export/             # CSV, Excel, JSON export
-│   ├── filters/            # Filterlogica
-│   └── stats/              # Statistieken en grafiekdata
-└── types/                  # TypeScript interfaces
-```
+Zie [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) voor de volledige architectuurdocumentatie.
 
-## Toekomstige uitbreidingen
+### Modules
 
-De code is voorbereid op:
+| Module | Verantwoordelijkheid |
+|--------|---------------------|
+| `ForecastEngine` | Alle statistische voorspellingen |
+| `AI Explanation Layer` | Uitleg met labels (Feit, Interpretatie, etc.) |
+| `TES Interpretation Layer` | Kwalitatieve TES-analyse (6 componenten) |
+| `Evidence Panel` | Bronnen, datasets, beperkingen |
+| `Connector Registry` | CBS, UWV, SCP, NEA (+ gepland: DUO, Eurostat, ESCO) |
 
-- API-koppeling OpenRaadsinformatie
-- Scraper
-- Supabase database
-- Elasticsearch
-- AI-samenvattingen, classificatie en chat
-- Favorieten, tags, notities en dossierbewaking
+### Doelgroepen
 
-## Deployment
+- Beleidsmakers
+- Werkgevers / HR
+- Loopbaanprofessionals
+- Onderzoekers
 
-### GitHub Pages
+## Technologie
 
-```bash
-GITHUB_PAGES=true npm run build
-```
+- Next.js 15, React 19, TypeScript
+- Recharts voor interactieve visualisaties
+- Tailwind CSS 4
 
-### Render.com
+## Licentie
 
-Zie `render.yaml` voor blueprint-configuratie.
+Privé — TES Research Platform
