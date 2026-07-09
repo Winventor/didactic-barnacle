@@ -11,14 +11,25 @@ Webapplicatie voor het doorzoeken van **moties**, **amendementen** en **schrifte
 
 ## Online gebruiken
 
-De app wordt automatisch gepubliceerd op **GitHub Pages** bij elke push naar `master`:
+### GitHub Pages (aanbevolen)
+
+De app staat klaar op de `gh-pages` branch. Activeer GitHub Pages **eenmalig**:
+
+1. Open [Repository Settings → Pages](https://github.com/Winventor/didactic-barnacle/settings/pages)
+2. Bij **Build and deployment** kies **Deploy from a branch**
+3. Branch: `gh-pages` · Folder: `/ (root)`
+4. Klik **Save**
+
+Na 1–2 minuten is de app bereikbaar op:
 
 **https://winventor.github.io/didactic-barnacle/**
+
+Bij elke push naar `master` wordt de site automatisch opnieuw gebouwd via GitHub Actions.
 
 ### Alternatief: Render.com
 
 1. Maak een account op [Render](https://render.com)
-2. Klik op **New > Blueprint** en koppel deze GitHub-repository
+2. Klik op **New → Blueprint** en koppel deze GitHub-repository
 3. Render leest `render.yaml` en publiceert de app op een eigen URL
 
 
