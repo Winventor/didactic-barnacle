@@ -1,7 +1,15 @@
 services:
   - type: web
-    name: raadsinformatie-overzicht
+    name: beleidsdashboard-openraadsinformatie
     runtime: static
     plan: free
     buildCommand: npm install && STATIC_EXPORT=true npm run build
     staticPublishPath: out
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=0, must-revalidate
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

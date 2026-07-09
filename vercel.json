@@ -1,0 +1,9 @@
+{
+  "buildCommand": "STATIC_EXPORT=true npm run build",
+  "outputDirectory": "out",
+  "framework": null,
+  "installCommand": "npm install",
+  "rewrites": [
+    { "source": "/documents/:id", "destination": "/documents/:id/index.html" }
+  ]
+}

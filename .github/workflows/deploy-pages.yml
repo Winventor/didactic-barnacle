@@ -36,7 +36,9 @@ jobs:
       - name: Build static site
         run: npm run build
         env:
-          GITHUB_PAGES: "true"
+          STATIC_EXPORT: "true"
+          # Zonder basePath wanneer een eigen domein is ingesteld in GitHub Pages
+          GITHUB_PAGES: ${{ vars.CUSTOM_DOMAIN == '' && 'true' || '' }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
