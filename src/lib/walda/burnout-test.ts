@@ -200,7 +200,7 @@ export const BURNOUT_DEMOGRAPHIC_QUESTIONS: BurnoutDemographicQuestion[] = [
 ];
 
 export const BURNOUT_PRIVACY_POLICY_URL =
-  "https://burnout-test.nl/privacy-cookiebeleid/";
+  "https://waldacoaching.nl/privacy-verklaring/";
 
 export const BURNOUT_RESULTS: BurnoutResult[] = [
   {
