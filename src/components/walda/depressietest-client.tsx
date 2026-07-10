@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   allQuestionsAnswered,
@@ -134,10 +133,10 @@ export function DepressietestClient() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-xl border border-amber-200/80 bg-amber-50/80 p-4 dark:border-amber-900/40 dark:bg-amber-950/30">
+      <section className="rounded-xl border border-primary/20 bg-primary/5 p-4">
         <div className="flex gap-3">
-          <AlertCircle className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400 mt-0.5" />
-          <div className="text-sm leading-relaxed text-amber-900/90 dark:text-amber-100/90">
+          <AlertCircle className="h-5 w-5 shrink-0 text-primary mt-0.5" />
+          <div className="text-sm leading-relaxed text-foreground/80">
             <p className="font-medium mb-1">Let op</p>
             <p>
               Deze vragenlijst is een oriëntatiehulpmiddel en vervangt geen
@@ -266,52 +265,6 @@ export function DepressietestClient() {
           </Tabs>
         </section>
       )}
-
-      <section className="rounded-xl border border-border/60 p-6 bg-muted/30">
-        <h3 className="text-sm font-semibold mb-3">Scoresysteem per antwoord</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead>
-              <tr className="border-b border-border/60 text-left">
-                <th className="py-2 pr-4 font-medium">Vraag</th>
-                <th className="py-2 pr-4 font-medium">Antwoordoptie</th>
-                <th className="py-2 font-medium">Score</th>
-              </tr>
-            </thead>
-            <tbody className="text-muted-foreground">
-              {DEPRESSIETEST_QUESTIONS.map((question) =>
-                question.options.map((option, index) => (
-                  <tr
-                    key={option.id}
-                    className="border-b border-border/40 last:border-0"
-                  >
-                    <td className="py-2 pr-4 align-top">
-                      {index === 0 ? question.id : ""}
-                    </td>
-                    <td className="py-2 pr-4">{option.label}</td>
-                    <td className="py-2">{option.score}</td>
-                  </tr>
-                )),
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="text-sm text-muted-foreground">
-        <h3 className="font-semibold text-foreground mb-2">Meer</h3>
-        <p>
-          Zie ook:{" "}
-          <a
-            href="https://www.pgweb.nl/zelftest/depressie"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary"
-          >
-            Depressie test — Online zelftest (PsyQ / pgweb.nl)
-          </a>
-        </p>
-      </section>
     </div>
   );
 }
