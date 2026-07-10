@@ -1,37 +1,37 @@
-/* Walda Coaching — warm, professioneel coachingthema */
+/* Walda Coaching — kleuren van waldacoaching.nl (Elementor kit) */
 .walda-coaching {
-  --background: 40 20% 98%;
-  --foreground: 25 20% 14%;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 29%;
   --card: 0 0% 100%;
-  --card-foreground: 25 20% 14%;
-  --primary: 25 45% 32%;
-  --primary-foreground: 40 20% 98%;
-  --secondary: 35 25% 94%;
-  --secondary-foreground: 25 30% 22%;
-  --muted: 35 18% 93%;
-  --muted-foreground: 25 10% 42%;
-  --accent: 35 30% 90%;
-  --accent-foreground: 25 30% 22%;
-  --border: 35 15% 88%;
-  --input: 35 15% 88%;
-  --ring: 25 45% 32%;
+  --card-foreground: 0 0% 29%;
+  --primary: 211 76% 59%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 211 60% 96%;
+  --secondary-foreground: 0 0% 29%;
+  --muted: 210 25% 96%;
+  --muted-foreground: 0 0% 42%;
+  --accent: 22 100% 64%;
+  --accent-foreground: 0 0% 100%;
+  --border: 210 18% 90%;
+  --input: 210 18% 90%;
+  --ring: 211 76% 59%;
   --radius: 0.75rem;
 }
 
 .walda-coaching.dark {
-  --background: 25 18% 9%;
-  --foreground: 40 15% 94%;
-  --card: 25 16% 12%;
-  --card-foreground: 40 15% 94%;
-  --primary: 35 40% 62%;
-  --primary-foreground: 25 20% 10%;
-  --secondary: 25 14% 18%;
-  --secondary-foreground: 40 15% 94%;
-  --muted: 25 14% 18%;
-  --muted-foreground: 35 10% 62%;
-  --accent: 25 14% 20%;
-  --accent-foreground: 40 15% 94%;
-  --border: 25 12% 22%;
-  --input: 25 12% 22%;
-  --ring: 35 40% 62%;
+  --background: 0 0% 12%;
+  --foreground: 0 0% 94%;
+  --card: 0 0% 15%;
+  --card-foreground: 0 0% 94%;
+  --primary: 211 76% 59%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 211 20% 18%;
+  --secondary-foreground: 0 0% 94%;
+  --muted: 211 15% 18%;
+  --muted-foreground: 0 0% 65%;
+  --accent: 22 100% 64%;
+  --accent-foreground: 0 0% 100%;
+  --border: 211 12% 22%;
+  --input: 211 12% 22%;
+  --ring: 211 76% 59%;
 }
