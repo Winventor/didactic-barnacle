@@ -6,7 +6,16 @@ const isStaticExport =
   process.env.STATIC_EXPORT === "true" || isGithubPagesProject;
 
 const nextConfig: NextConfig = {
-  images: { unoptimized: true },
+  images: {
+    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "waldacoaching.nl",
+        pathname: "/wp-content/uploads/**",
+      },
+    ],
+  },
   ...(isStaticExport
     ? {
         output: "export",
