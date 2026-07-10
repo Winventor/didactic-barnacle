@@ -16,7 +16,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   BURNOUT_DEMOGRAPHIC_QUESTIONS,
-  BURNOUT_PRIVACY_POLICY_URL,
   BURNOUT_RESEARCH_INTRO,
   BURNOUT_SYMPTOM_CATEGORIES,
   BURNOUT_TEST_INSTRUCTIONS,
@@ -444,11 +443,12 @@ export function BurnoutTestClient() {
             </div>
 
             <div className="space-y-3">
-              <Label>
+              <Label htmlFor="privacyAccepted">
                 Uw privacy<span className="text-destructive ml-0.5">*</span>
               </Label>
-              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border/60 px-4 py-3 text-sm">
+              <div className="flex items-start gap-3 rounded-lg border border-border/60 px-4 py-3 text-sm">
                 <Checkbox
+                  id="privacyAccepted"
                   checked={privacyAccepted}
                   onCheckedChange={(value) => {
                     setPrivacyAccepted(value === true);
@@ -456,25 +456,29 @@ export function BurnoutTestClient() {
                   }}
                   className="mt-0.5"
                 />
-                <span className="leading-relaxed text-muted-foreground">
-                  Ik ga akkoord met het{" "}
+                <div className="leading-relaxed text-muted-foreground">
+                  <label htmlFor="privacyAccepted" className="cursor-pointer">
+                    Ik ga akkoord met het{" "}
+                  </label>
                   <a
-                    href={BURNOUT_PRIVACY_POLICY_URL}
+                    href="https://waldacoaching.nl/privacy-verklaring/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary"
+                    className="font-medium text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary"
                   >
                     privacy &amp; cookiebeleid
                   </a>
-                  .
-                  <span className="block mt-2">
+                  <label htmlFor="privacyAccepted" className="cursor-pointer">
+                    .
+                  </label>
+                  <p className="mt-2">
                     We zullen je na akkoord mailen met tips, tools en
                     aanbiedingen aansluitend op jouw situatie. Bijvoorbeeld tips
                     voor meer energie, omgaan met stress, minder piekeren etc. Je
                     kunt je ten alle tijden weer uitschrijven.
-                  </span>
-                </span>
-              </label>
+                  </p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
