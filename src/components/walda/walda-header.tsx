@@ -12,6 +12,20 @@ export function WaldaHeader() {
             Voor wie verder wil
           </p>
         </Link>
+        <nav className="hidden sm:flex items-center gap-4 text-sm text-muted-foreground">
+          <Link
+            href="/walda/depressietest"
+            className="hover:text-foreground transition-colors"
+          >
+            Depressietest
+          </Link>
+          <Link
+            href="/walda/burnout-test"
+            className="hover:text-foreground transition-colors"
+          >
+            Burnout test
+          </Link>
+        </nav>
         <div className="flex items-center gap-3 text-sm">
           <a
             href="tel:0528522142"
