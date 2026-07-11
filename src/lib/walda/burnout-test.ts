@@ -26,11 +26,6 @@ export interface BurnoutResult {
   title: string;
   body: string[];
   stressExplanation?: string[];
-  signature: {
-    name: string;
-    titles: string;
-    link?: { label: string; href: string };
-  };
   showEmailNote?: boolean;
 }
 
@@ -213,14 +208,6 @@ export const BURNOUT_RESULTS: BurnoutResult[] = [
       "Als dat 100% klopt, helemaal goed en ga vooral door zoals je het doet. No stress 😉",
       "Of wellicht was je nieuwsgierig voor iemand anders. Dan wil ik je vragen om diegene [de test](https://www.burnout-test.nl/) zelf te laten invullen. Dit zou nog wel eens een belangrijk punt in het herstelproces kunnen zijn.",
     ],
-    signature: {
-      name: "Kirsten Nelis",
-      titles: "[[burn-out coach]] / [[leiderschapscoach]] / ervaringsdeskundige",
-      link: {
-        label: "Over Kirsten.",
-        href: "http://www.kirstennelis.nl/over-kirsten-nelis-burn-out-coach/",
-      },
-    },
   },
   {
     id: "5-7",
@@ -234,15 +221,6 @@ export const BURNOUT_RESULTS: BurnoutResult[] = [
     stressExplanation: [
       "Jouw stress-systeem heeft een te lange tijd constant 'aan' gestaan waardoor je op jouw reserve batterij hebt ingeteerd. In deze tijd verergeren de stressklachten: ze worden zwaarder, komen vaker voor en ook het aantal breidt zich uit. Als je doorgaat op de manier waarop je hier gekomen bent, zullen de stressklachten zich verder verergeren. Kom dus nu in actie en start met jouw herstel.",
     ],
-    signature: {
-      name: "Kirsten Nelis",
-      titles:
-        "[[burn-out coach]] & leiderschapscoach (2015) & ervaringsdeskundige (2010)",
-      link: {
-        label: "Meer over Kirsten",
-        href: "http://www.kirstennelis.nl/over-kirsten-nelis-burn-out-coach/",
-      },
-    },
   },
   {
     id: "8-10",
@@ -256,15 +234,6 @@ export const BURNOUT_RESULTS: BurnoutResult[] = [
     stressExplanation: [
       "Jouw stress-systeem heeft een te lange tijd constant 'aan' gestaan waardoor je op jouw reserve batterij hebt ingeteerd. In deze tijd verergeren de stressklachten: ze worden zwaarder, komen vaker voor en ook het aantal breidt zich uit. Als je doorgaat op de manier waarop je hier gekomen bent, zullen de stressklachten zich verder verergeren. Kom dus nu in actie en start met jouw herstel.",
     ],
-    signature: {
-      name: "Kirsten Nelis",
-      titles:
-        "[[burn-out coach]] & leiderschapscoach (2015) & ervaringsdeskundige (2010)",
-      link: {
-        label: "Meer over Kirsten",
-        href: "http://www.kirstennelis.nl/over-kirsten-nelis-burn-out-coach/",
-      },
-    },
     showEmailNote: true,
   },
   {
@@ -276,10 +245,6 @@ export const BURNOUT_RESULTS: BurnoutResult[] = [
       "Jouw uitslag: chronische stress waarbij het risico significant is om overspannen of [[overwerkt]] te raken. Kom dus nu in actie om jouw stress levels te verlagen. In deze situatie is het raadzaam om hulp in te schakelen van een coach of iemand die gespecialiseerd is stress management & burn-out preventie.",
       "Ik zou je daarbij kunnen helpen als coach. Individueel of door middel van een van mijn online programma's.",
     ],
-    signature: {
-      name: "Geert-Jan Walda",
-      titles: "",
-    },
   },
 ];
 
@@ -303,14 +268,6 @@ export function getResultForSymptomCount(count: number): BurnoutResult {
       body: [
         "Je hebt geen klachten aangevinkt. Als dat klopt, helemaal goed en ga vooral door zoals je het doet. No stress 😉",
       ],
-      signature: {
-        name: "Kirsten Nelis",
-        titles: "[[burn-out coach]] / [[leiderschapscoach]] / ervaringsdeskundige",
-        link: {
-          label: "Over Kirsten.",
-          href: "http://www.kirstennelis.nl/over-kirsten-nelis-burn-out-coach/",
-        },
-      },
     };
   }
 
