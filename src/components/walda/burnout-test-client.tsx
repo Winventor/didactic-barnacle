@@ -153,28 +153,6 @@ function ResultPanel({
           per mail (check eventueel jouw spambox).
         </p>
       )}
-
-      <div className="text-sm text-muted-foreground">
-        <p>Hartelijke groeten,</p>
-        <p className="font-semibold text-foreground mt-2">
-          {result.signature.name}
-        </p>
-        {result.signature.titles && (
-          <p className="mt-1">{parseWikiText(result.signature.titles)}</p>
-        )}
-        {result.signature.link && (
-          <p className="mt-1">
-            <a
-              href={result.signature.link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary"
-            >
-              {result.signature.link.label}
-            </a>
-          </p>
-        )}
-      </div>
     </div>
   );
 }
