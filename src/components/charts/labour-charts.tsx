@@ -12,70 +12,173 @@ import {
   Area,
   ComposedChart,
 } from "recharts";
-import type { HistoricalValue, ForecastScenario } from "@/types";
+import type { HistoricalValue, ForecastScenario, ChartSeriesPoint } from "@/types";
 
 interface HistoricalChartProps {
   historical: HistoricalValue[];
   scenarios?: ForecastScenario[];
+  chartSeries?: ChartSeriesPoint[];
   unit?: string;
 }
 
-export function HistoricalForecastChart({ historical, scenarios, unit = "FTE" }: HistoricalChartProps) {
+function buildChartData(
+  historical: HistoricalValue[],
+  scenarios: ForecastScenario[] | undefined,
+  chartSeries?: ChartSeriesPoint[]
+) {
   const sorted = [...historical].sort((a, b) => a.year - b.year);
   const realistic = scenarios?.find((s) => s.type === "realistisch");
   const conservative = scenarios?.find((s) => s.type === "conservatief");
   const optimistic = scenarios?.find((s) => s.type === "optimistisch");
 
+  if (chartSeries && chartSeries.length > 0) {
+    const byYear = new Map<
+      number,
+      {
+        year: number;
+        period: string;
+        historisch: number | null;
+        modelFit: number | null;
+        conservatief: number | null;
+        realistisch: number | null;
+        optimistisch: number | null;
+      }
+    >();
+
+    for (const point of chartSeries) {
+      const existing = byYear.get(point.year) ?? {
+        year: point.year,
+        period: point.period,
+        historisch: null,
+        modelFit: null,
+        conservatief: null,
+        realistisch: null,
+        optimistisch: null,
+      };
+      if (point.kind === "historisch") {
+        existing.historisch = point.value;
+      } else {
+        existing.modelFit = point.value;
+      }
+      existing.period = point.period;
+      byYear.set(point.year, existing);
+    }
+
+    realistic?.values.forEach((v, i) => {
+      const row = byYear.get(v.year) ?? {
+        year: v.year,
+        period: String(v.year),
+        historisch: null,
+        modelFit: null,
+        conservatief: null,
+        realistisch: null,
+        optimistisch: null,
+      };
+      if (i === 0 && sorted.length > 0) {
+        row.historisch = sorted[sorted.length - 1]?.value ?? null;
+      }
+      row.conservatief = conservative?.values[i]?.value ?? null;
+      row.realistisch = v.value;
+      row.optimistisch = optimistic?.values[i]?.value ?? null;
+      byYear.set(v.year, row);
+    });
+
+    return [...byYear.values()].sort((a, b) => a.year - b.year);
+  }
+
   const chartData = [
     ...sorted.map((h) => ({
       year: h.year,
+      period: String(h.year),
       historisch: h.value,
+      modelFit: null as number | null,
       conservatief: null as number | null,
       realistisch: null as number | null,
       optimistisch: null as number | null,
     })),
     ...(realistic?.values.map((v, i) => ({
       year: v.year,
+      period: String(v.year),
       historisch: i === 0 ? sorted[sorted.length - 1]?.value : null,
+      modelFit: null as number | null,
       conservatief: conservative?.values[i]?.value ?? null,
       realistisch: v.value,
       optimistisch: optimistic?.values[i]?.value ?? null,
     })) ?? []),
   ];
 
-  const uniqueYears = [...new Map(chartData.map((d) => [d.year, d])).values()].sort(
-    (a, b) => a.year - b.year
-  );
+  return [...new Map(chartData.map((d) => [d.year, d])).values()].sort((a, b) => a.year - b.year);
+}
+
+export function HistoricalForecastChart({
+  historical,
+  scenarios,
+  chartSeries,
+  unit = "FTE",
+}: HistoricalChartProps) {
+  const chartData = buildChartData(historical, scenarios, chartSeries);
+  const hasModelFit = chartSeries?.some((p) => p.kind === "model-fit");
+  const dataPointCount = historical.length;
 
   return (
-    <div className="h-80 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={uniqueYears} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
-          <XAxis dataKey="year" tick={{ fontSize: 12 }} className="text-muted-foreground" />
-          <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
-          <Tooltip
-            formatter={(value) => {
-              const num = typeof value === "number" ? value : null;
-              return num !== null ? [`${num.toLocaleString("nl-NL")} ${unit}`, ""] : ["—", ""];
-            }}
-            contentStyle={{ borderRadius: 8, border: "1px solid hsl(var(--border))" }}
-          />
-          <Legend />
-          <Area
-            type="monotone"
-            dataKey="historisch"
-            fill="hsl(var(--muted))"
-            stroke="hsl(var(--foreground))"
-            strokeWidth={2}
-            name="Historisch"
-            connectNulls={false}
-          />
-          <Line type="monotone" dataKey="conservatief" stroke="#94a3b8" strokeDasharray="5 5" dot={false} name="Conservatief" connectNulls />
-          <Line type="monotone" dataKey="realistisch" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name="Realistisch" connectNulls />
-          <Line type="monotone" dataKey="optimistisch" stroke="#22c55e" strokeDasharray="5 5" dot={false} name="Optimistisch" connectNulls />
-        </ComposedChart>
-      </ResponsiveContainer>
+    <div className="space-y-2">
+      <div className="h-80 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
+            <XAxis
+              dataKey="year"
+              tick={{ fontSize: 11 }}
+              className="text-muted-foreground"
+              tickFormatter={(y: number) => (Number.isInteger(y) ? String(y) : "")}
+            />
+            <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
+            <Tooltip
+              labelFormatter={(_, payload) => {
+                const period = payload?.[0]?.payload?.period;
+                return period ? String(period) : "";
+              }}
+              formatter={(value, name) => {
+                const num = typeof value === "number" ? value : null;
+                const label = typeof name === "string" ? name : "";
+                return num !== null ? [`${num.toLocaleString("nl-NL")} ${unit}`, label] : ["—", label];
+              }}
+              contentStyle={{ borderRadius: 8, border: "1px solid hsl(var(--border))" }}
+            />
+            <Legend />
+            <Area
+              type="monotone"
+              dataKey="historisch"
+              fill="hsl(var(--muted))"
+              stroke="hsl(var(--foreground))"
+              strokeWidth={2}
+              name="Historisch"
+              connectNulls={false}
+              dot={chartSeries ? { r: 2 } : false}
+            />
+            {hasModelFit && (
+              <Line
+                type="monotone"
+                dataKey="modelFit"
+                stroke="#6366f1"
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+                dot={false}
+                name="Model-fit"
+                connectNulls
+              />
+            )}
+            <Line type="monotone" dataKey="conservatief" stroke="#94a3b8" strokeDasharray="5 5" dot={false} name="Conservatief" connectNulls />
+            <Line type="monotone" dataKey="realistisch" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name="Realistisch" connectNulls />
+            <Line type="monotone" dataKey="optimistisch" stroke="#22c55e" strokeDasharray="5 5" dot={false} name="Optimistisch" connectNulls />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      {chartSeries && chartSeries.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          {dataPointCount} jaarlijkse meetpunten ({chartSeries.filter((p) => p.kind === "historisch").length} kwartaalpunten geïnterpoleerd) · 2010–2024
+        </p>
+      )}
     </div>
   );
 }

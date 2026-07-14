@@ -217,29 +217,34 @@ export async function executeSearchAsync(
     liveUnemployment
   );
 
-  const model = mockForecastModels.find((m) => m.type === "linear_regression" && m.enabled)!;
-
   let forecastResult;
-  if (historicalData.length >= 3) {
+  if (historicalData.length >= 4) {
     forecastResult = forecastEngine.generate({
       indicatorId: resolved.indicatorId,
       regionId: resolved.regionId,
       occupationId: resolved.occupationId,
       historicalData,
-      model,
       horizonYears: 5,
+      autoSelectModel: true,
     });
   } else {
+    const fallbackModel = mockForecastModels.find((m) => m.type === "linear_regression" && m.enabled)!;
     forecastResult = {
       forecast: emptyForecast(resolved.indicatorId, resolved.regionId),
       scenarios: [],
+      model: fallbackModel,
       modelMetrics: {
         residualStdDev: 0,
-        historicalPeriod: { start: 2015, end: 2024 },
+        rmse: 0,
+        historicalPeriod: { start: 2010, end: 2024 },
+        dataPoints: historicalData.length,
       },
       historicalFit: [],
+      chartSeries: [],
     };
   }
+
+  const selectedModel = forecastResult.model ?? mockForecastModels.find((m) => m.type === "linear_regression" && m.enabled)!;
 
   const relevantDatasets = mockDatasets.filter(
     (d) =>
@@ -258,14 +263,16 @@ export async function executeSearchAsync(
   const explainability = buildExplainability(
     relevantDatasets,
     [indicator],
-    model,
+    selectedModel,
     forecastResult.modelMetrics.historicalPeriod,
     realistic?.uncertaintyMargin ?? 0,
     forecastResult.modelMetrics.rSquared,
-    forecastResult.modelMetrics.cagr
+    forecastResult.modelMetrics.cagr,
+    forecastResult.modelSelection,
+    forecastResult.modelMetrics.rmse
   );
 
-  const evidencePanel = buildEvidencePanel(queryId, relevantSources, relevantDatasets, model, explainability);
+  const evidencePanel = buildEvidencePanel(queryId, relevantSources, relevantDatasets, selectedModel, explainability);
 
   const userQuery: UserQuery = {
     id: queryId,
@@ -295,7 +302,7 @@ export async function executeSearchAsync(
     indicator,
     historicalData,
     scenarios: forecastResult.scenarios,
-    modelName: model.name,
+    modelName: selectedModel.name,
     rSquared: forecastResult.modelMetrics.rSquared,
     sourceNames: relevantSources.map((s) => s.name),
     resultMode: resolved.resultMode,
@@ -344,6 +351,8 @@ export async function executeSearchAsync(
     dataProvenance,
     occupationRanking,
     sectorRanking,
+    historicalFit: forecastResult.historicalFit,
+    chartSeries: forecastResult.chartSeries,
   };
 }
 
@@ -365,15 +374,15 @@ export function executeSearch(queryText: string, options: QueryOptions = {}): Se
     indicatorId: resolved.indicatorId,
   });
   const allIndicators = getRegionalIndicatorValues(resolved.regionId);
-  const model = mockForecastModels.find((m) => m.type === "linear_regression" && m.enabled)!;
   const forecastResult = forecastEngine.generate({
     indicatorId: resolved.indicatorId,
     regionId: resolved.regionId,
     occupationId: resolved.occupationId,
     historicalData,
-    model,
     horizonYears: 5,
+    autoSelectModel: true,
   });
+  const selectedModel = forecastResult.model;
 
   const relevantDatasets = mockDatasets.filter(
     (d) => d.regionIds.includes(resolved.regionId) || (resolved.occupationId && d.occupationIds.includes(resolved.occupationId))
@@ -385,13 +394,15 @@ export function executeSearch(queryText: string, options: QueryOptions = {}): Se
   const explainability = buildExplainability(
     relevantDatasets,
     [indicator],
-    model,
+    selectedModel,
     forecastResult.modelMetrics.historicalPeriod,
     realistic.uncertaintyMargin,
     forecastResult.modelMetrics.rSquared,
-    forecastResult.modelMetrics.cagr
+    forecastResult.modelMetrics.cagr,
+    forecastResult.modelSelection,
+    forecastResult.modelMetrics.rmse
   );
-  const evidencePanel = buildEvidencePanel(queryId, relevantSources, relevantDatasets, model, explainability);
+  const evidencePanel = buildEvidencePanel(queryId, relevantSources, relevantDatasets, selectedModel, explainability);
 
   const userQuery: UserQuery = {
     id: queryId,
@@ -410,7 +421,7 @@ export function executeSearch(queryText: string, options: QueryOptions = {}): Se
     indicator,
     historicalData,
     scenarios: forecastResult.scenarios,
-    modelName: model.name,
+    modelName: selectedModel.name,
     rSquared: forecastResult.modelMetrics.rSquared,
     sourceNames: relevantSources.map((s) => s.name),
   };
@@ -446,6 +457,8 @@ export function executeSearch(queryText: string, options: QueryOptions = {}): Se
       resolved.resultMode === "sector_growth"
         ? buildSectorRanking(resolved.regionId)
         : undefined,
+    historicalFit: forecastResult.historicalFit,
+    chartSeries: forecastResult.chartSeries,
   };
 }
 

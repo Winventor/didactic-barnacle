@@ -2,7 +2,7 @@ import type { HistoricalValue } from "@/types";
 import type { CBSLabourPoint, CBSUnemploymentPoint } from "@/lib/connectors/cbs-connector";
 import { mockHistoricalValues } from "@/data/mock";
 
-const START_YEAR = 2015;
+const START_YEAR = 2010;
 const END_YEAR = 2024;
 
 function hashSeed(input: string): number {

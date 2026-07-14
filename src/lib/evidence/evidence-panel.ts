@@ -121,13 +121,15 @@ export function buildExplainability(
   historicalPeriod: { start: number; end: number },
   uncertaintyMargin: number,
   rSquared?: number,
-  cagr?: number
+  cagr?: number,
+  modelSelection?: ExplainabilityDetail["modelSelection"],
+  rmse?: number
 ): ExplainabilityDetail {
   const variableInfluence = [
     { variable: "Tijd (jaar)", influence: rSquared ?? 0.85, description: "Primaire voorspeller in trendmodel" },
     { variable: "Historische groei", influence: cagr ? Math.min(Math.abs(cagr) * 10, 1) : 0.6, description: "CAGR over historische periode" },
-    { variable: "Regionale factor", influence: 0.3, description: "Provinciaal basiseffect (mock)" },
-    { variable: "Sectorale vraag", influence: 0.45, description: "Zorgvraag door vergrijzing" },
+    { variable: "Regionale factor", influence: 0.3, description: "Regionaal basiseffect" },
+    { variable: "Model-fit (RMSE)", influence: rmse ? Math.max(0.2, 1 - rmse / 1000) : 0.5, description: "Lagere RMSE = betere fit" },
   ];
 
   return {
@@ -137,9 +139,11 @@ export function buildExplainability(
     historicalPeriod,
     variableInfluence,
     uncertaintyMargin,
+    modelSelection,
     limitations: [
       "Model verklaart niet alle variantie — externe factoren (beleid, technologie) ontbreken",
       "Scenario's zijn illustratief, niet probabilistisch gekalibreerd",
+      "Kwartaalpunten in grafieken zijn geïnterpoleerd tussen jaarlijkse metingen",
     ],
   };
 }
