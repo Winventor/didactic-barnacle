@@ -1,0 +1,275 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  name      String?
+  role      String   @default("user")
+  cases     Case[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Case {
+  id              String           @id @default(cuid())
+  title           String?
+  narrative       String
+  municipality    String?
+  province        String?
+  status          String           @default("draft")
+  userId          String?
+  user            User?            @relation(fields: [userId], references: [id])
+  parties         CaseParty[]
+  facts           Fact[]
+  events          Event[]
+  evidence        EvidenceItem[]
+  legalIssues     LegalIssue[]
+  claimDrafts     ClaimDraft[]
+  assessments     SuccessAssessment[]
+  annotations     UserAnnotation[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model CaseParty {
+  id     String @id @default(cuid())
+  caseId String
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name   String
+  role   String
+}
+
+model Fact {
+  id        String  @id @default(cuid())
+  caseId    String
+  case      Case    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  text      String
+  label     String
+  date      String?
+  certainty String  @default("MIDDEL")
+}
+
+model Event {
+  id               String  @id @default(cuid())
+  caseId           String
+  case             Case    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  date             String
+  time             String?
+  description      String
+  legalRelevance   String?
+  possibleLegalArea String?
+  certainty        String  @default("MIDDEL")
+}
+
+model EvidenceItem {
+  id          String  @id @default(cuid())
+  caseId      String
+  case        Case    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filename    String?
+  mimeType    String?
+  description String?
+  strength    String  @default("ONBEKEND")
+  disputed    Boolean @default(false)
+}
+
+model LegalIssue {
+  id        String @id @default(cuid())
+  caseId    String
+  case      Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  label     String
+  legalArea String
+  subArea   String?
+  relevant  Boolean @default(true)
+}
+
+model LegalSource {
+  id              String          @id @default(cuid())
+  adapterId       String
+  title           String
+  jurisdiction    String
+  sourceType      String
+  authorityLevel  String
+  officialUrl     String
+  identifier      String?
+  fetchedAt       DateTime        @default(now())
+  documents       LegalDocument[]
+}
+
+model LegalDocument {
+  id             String          @id @default(cuid())
+  sourceId       String?
+  source         LegalSource?    @relation(fields: [sourceId], references: [id])
+  adapterId      String
+  title          String
+  fullText       String?         @db.Text
+  jurisdiction   String
+  sourceType     String
+  authorityLevel String
+  officialUrl    String
+  bwbId          String?
+  ecli           String?
+  celex          String?
+  cvdrId         String?
+  fetchedAt      DateTime        @default(now())
+  citations      Citation[]
+  provisions     StatutoryProvision[]
+  decisions      CourtDecision[]
+}
+
+model Citation {
+  id            String        @id @default(cuid())
+  documentId    String
+  document      LegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  exactPassage  String?       @db.Text
+  paragraphRef  String?
+  url           String
+  verified      Boolean       @default(false)
+  isSummary     Boolean       @default(true)
+  textHash      String?
+  fetchedAt     DateTime      @default(now())
+}
+
+model CourtDecision {
+  id          String        @id @default(cuid())
+  documentId  String
+  document    LegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  ecli        String?
+  institution String
+  date        String?
+  outcome     String?
+  coreRule    String?       @db.Text
+}
+
+model StatutoryProvision {
+  id            String        @id @default(cuid())
+  documentId    String
+  document      LegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  articleNumber String
+  text          String?       @db.Text
+  validFrom     String?
+  validTo       String?
+}
+
+model TreatyProvision {
+  id          String @id @default(cuid())
+  treatyId    String
+  article     String
+  text        String? @db.Text
+  inForceNl   Boolean @default(false)
+  effectiveDate String?
+}
+
+model LegalRule {
+  id        String @id @default(cuid())
+  rule      String @db.Text
+  label     String
+  legalArea String
+  conditions String[]
+}
+
+model LegalException {
+  id        String @id @default(cuid())
+  ruleId    String?
+  title     String
+  exception String @db.Text
+  conditions String[]
+  sourceEclis String[]
+}
+
+model SearchQuery {
+  id        String         @id @default(cuid())
+  text      String
+  legalArea String?
+  createdAt DateTime       @default(now())
+  results   SearchResult[]
+}
+
+model SearchResult {
+  id            String      @id @default(cuid())
+  queryId       String
+  query         SearchQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  adapterId     String
+  title         String
+  snippet       String?     @db.Text
+  officialUrl   String
+  identifier    String?
+  relevanceScore Float?
+}
+
+model ClaimDraft {
+  id           String         @id @default(cuid())
+  caseId       String?
+  case         Case?          @relation(fields: [caseId], references: [id])
+  documentType String
+  title        String
+  content      String         @db.Text
+  tone         String         @default("FORMEEL")
+  elements     ClaimElement[]
+  createdAt    DateTime       @default(now())
+}
+
+model ClaimElement {
+  id           String     @id @default(cuid())
+  claimDraftId String
+  claimDraft   ClaimDraft @relation(fields: [claimDraftId], references: [id], onDelete: Cascade)
+  heading      String
+  content      String     @db.Text
+  label        String
+}
+
+model CounterArgument {
+  id              String @id @default(cuid())
+  element         String
+  userArgument    String @db.Text
+  expectedDefense String @db.Text
+  response        String @db.Text
+  evidenceNeeded  String @db.Text
+}
+
+model SuccessAssessment {
+  id           String   @id @default(cuid())
+  caseId       String?
+  case         Case?    @relation(fields: [caseId], references: [id])
+  quantifiable Boolean
+  category     String?
+  lowScore     Int?
+  highScore    Int?
+  reliability  String
+  warning      String   @db.Text
+  components   Json?
+  createdAt    DateTime @default(now())
+}
+
+model SourceFetchLog {
+  id        String   @id @default(cuid())
+  adapterId String
+  url       String
+  status    String
+  latencyMs Int?
+  error     String?
+  createdAt DateTime @default(now())
+}
+
+model SourceVersion {
+  id         String   @id @default(cuid())
+  sourceId   String
+  version    String
+  validFrom  String?
+  validTo    String?
+  fetchedAt  DateTime @default(now())
+}
+
+model UserAnnotation {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+}

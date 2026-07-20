@@ -1,4 +1,4 @@
-# Deployment – Beleidsdashboard OpenRaadsinformatie
+# Deployment – Beleidsdashboard & Juridisch Onderzoeksplatform
 
 ## Live bekijken (opties)
 
@@ -6,7 +6,17 @@
 
 **Standaard URL:** https://winventor.github.io/didactic-barnacle/
 
-De site wordt automatisch gebouwd en gepubliceerd via GitHub Actions.
+| App | Pad |
+|-----|-----|
+| Beleidsdashboard | `/` |
+| Juridisch Onderzoeksplatform | `/juridisch/` |
+| TES Labour Intelligence | `/tes/` |
+
+Directe link juridisch: https://winventor.github.io/didactic-barnacle/juridisch/
+
+De site wordt automatisch gebouwd en gepubliceerd via GitHub Actions (`Deploy naar GitHub Pages`).
+
+**Static export:** het juridische platform draait client-side op GitHub Pages (geen server-API). Officiële bronnen openen via permanente links; live API-calls kunnen door CORS beperkt zijn.
 
 ### Optie 2: Render.com (eigen subdomein, aanbevolen voor productie)
 
@@ -46,13 +56,13 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000
+Open http://localhost:3000 (dashboard) of http://localhost:3000/juridisch
 
 ## Build commando's
 
 | Doel | Commando |
 |------|----------|
 | Lokaal ontwikkelen | `npm run dev` |
-| Standaard build | `npm run build` |
-| Static export (Render/Vercel/eigen domein) | `STATIC_EXPORT=true npm run build` |
-| GitHub Pages (met subpath) | `GITHUB_PAGES=true npm run build` |
+| Standaard build (met API) | `npm run build` |
+| Static export / GitHub Pages | `STATIC_EXPORT=true GITHUB_PAGES=true npm run build:pages` |
+| Static zonder subpath (eigen domein) | `STATIC_EXPORT=true npm run build:pages` |
