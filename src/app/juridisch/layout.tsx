@@ -13,7 +13,7 @@ export default function JuridischLayout({ children }: { children: React.ReactNod
   return (
     <div className="juridisch-theme min-h-screen bg-background">
       <JuridischHeader />
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto max-w-5xl px-4 py-8 space-y-7">
         {children}
         <LegalDisclaimer />
       </main>
