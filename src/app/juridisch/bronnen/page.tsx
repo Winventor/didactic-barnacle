@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getSourcesHealth } from "@/legal/client/browser-api";
 import { CheckCircle, AlertCircle, XCircle, Loader2 } from "lucide-react";
 
 interface SourceHealth {
@@ -26,8 +27,7 @@ export default function BronnenPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/juridisch/sources/health")
-      .then((r) => r.json())
+    getSourcesHealth()
       .then((data) => {
         setHealth(data.health ?? []);
         setSources(data.sources ?? []);
@@ -49,7 +49,10 @@ export default function BronnenPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Bronstatus</h1>
-        <p className="text-muted-foreground">Status van alle aangesloten officiële databronnen</p>
+        <p className="text-muted-foreground">
+          Status van alle aangesloten officiële databronnen. Op GitHub Pages kunnen live checks
+          door CORS beperkt zijn; gebruik dan de officiële links.
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

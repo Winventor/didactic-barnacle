@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SourceCard } from "@/components/juridisch/source-card";
+import { searchSources } from "@/legal/client/browser-api";
 import type { LegalSearchResult } from "@/legal/types";
 import { Search, Loader2 } from "lucide-react";
 
@@ -16,8 +17,7 @@ export default function WetgevingPage() {
     if (!query.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/juridisch/search?q=${encodeURIComponent(query)}&adapter=${adapter}&limit=15`);
-      const data = await res.json();
+      const data = await searchSources({ q: query, adapter, limit: 15 });
       setResults(data.results ?? []);
     } finally {
       setLoading(false);

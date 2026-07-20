@@ -6,6 +6,12 @@ Moderne, responsieve webapplicatie waarmee openbare beleidsdocumenten uit [OpenR
 
 **Open nu in je browser:** https://winventor.github.io/didactic-barnacle/
 
+| Website | URL |
+|---------|-----|
+| Beleidsdashboard | https://winventor.github.io/didactic-barnacle/ |
+| Juridisch Onderzoeksplatform | https://winventor.github.io/didactic-barnacle/juridisch/ |
+| TES Labour Intelligence | https://winventor.github.io/didactic-barnacle/tes/ |
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Winventor/didactic-barnacle)
 
 Klik op de knop hierboven voor een eigen URL op Render (bijv. `beleidsdashboard-openraadsinformatie.onrender.com`) — duurt ~2 minuten, geen domeinnaam nodig.

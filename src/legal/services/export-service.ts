@@ -1,4 +1,3 @@
-import { Document, Packer, Paragraph, HeadingLevel, TextRun } from "docx";
 import type { CaseAnalysisResult, ClaimDraft } from "../types";
 
 export class ExportService {
@@ -101,7 +100,7 @@ export class ExportService {
       "---",
       `Rechtstoestand beoordeeld per: ${analysis.metadata.assessedAsOf}`,
       `Feitenperiode: ${analysis.metadata.factsPeriodFrom ?? "?"} – ${analysis.metadata.factsPeriodTo ?? "?"}`,
-      `Laatste broncontrole: ${analysis.metadata.lastSourceCheck}`,
+      `Laatste broncontrole: ${analysis.metadata.lastSourceCheck}`
     );
 
     return lines.join("\n");
@@ -120,6 +119,7 @@ export class ExportService {
   }
 
   async claimToDocx(claim: ClaimDraft): Promise<Buffer> {
+    const { Document, Packer, Paragraph, HeadingLevel, TextRun } = await import("docx");
     const children = [
       new Paragraph({ text: claim.title, heading: HeadingLevel.TITLE }),
       ...claim.sections.flatMap((s) => [
@@ -135,6 +135,7 @@ export class ExportService {
   }
 
   async caseAnalysisToDocx(analysis: CaseAnalysisResult): Promise<Buffer> {
+    const { Document, Packer, Paragraph, HeadingLevel, TextRun } = await import("docx");
     const markdown = this.caseAnalysisToMarkdown(analysis);
     const paragraphs = markdown.split("\n").map((line) => {
       if (line.startsWith("# ")) {

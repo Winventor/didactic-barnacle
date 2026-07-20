@@ -5,6 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClaimLabelBadge } from "@/components/juridisch/claim-label-badge";
 import { TEST_CASES } from "@/legal/seed/test-cases";
+import {
+  generateClaim,
+  claimToMarkdown,
+  downloadTextFile,
+} from "@/legal/client/browser-api";
 import type { ClaimDraft, ClaimDocumentType } from "@/legal/types";
 import { Loader2, Download } from "lucide-react";
 
@@ -34,29 +39,22 @@ export default function ClaimPage() {
     if (!narrative.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/juridisch/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ narrative, documentType, tone, desiredOutcome }),
-      });
-      setClaim(await res.json());
+      setClaim(
+        await generateClaim({
+          narrative,
+          documentType,
+          tone,
+          desiredOutcome: desiredOutcome || "Juridische actie",
+        })
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleExport(format: "markdown" | "docx") {
-    const res = await fetch("/api/juridisch/claim", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ narrative, documentType, tone, desiredOutcome, format }),
-    });
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `claim.${format === "markdown" ? "md" : "docx"}`;
-    a.click();
+  function handleExportMarkdown() {
+    if (!claim) return;
+    downloadTextFile("claim.md", claimToMarkdown(claim));
   }
 
   return (
@@ -114,14 +112,9 @@ export default function ClaimPage() {
           Genereren
         </Button>
         {claim && (
-          <>
-            <Button variant="outline" onClick={() => handleExport("markdown")}>
-              <Download className="h-4 w-4 mr-2" /> Markdown
-            </Button>
-            <Button variant="outline" onClick={() => handleExport("docx")}>
-              <Download className="h-4 w-4 mr-2" /> DOCX
-            </Button>
-          </>
+          <Button variant="outline" onClick={handleExportMarkdown}>
+            <Download className="h-4 w-4 mr-2" /> Markdown
+          </Button>
         )}
       </div>
 

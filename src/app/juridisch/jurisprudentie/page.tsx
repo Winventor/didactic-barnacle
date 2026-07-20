@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SourceCard } from "@/components/juridisch/source-card";
+import { searchSources } from "@/legal/client/browser-api";
 import type { LegalSearchResult } from "@/legal/types";
 import { Search, Loader2 } from "lucide-react";
 
@@ -17,10 +18,7 @@ export default function JurisprudentiePage() {
     setLoading(true);
     try {
       const q = ecli || query;
-      const params = new URLSearchParams({ q, limit: "20" });
-      if (adapter) params.set("adapter", adapter);
-      const res = await fetch(`/api/juridisch/search?${params}`);
-      const data = await res.json();
+      const data = await searchSources({ q, adapter, limit: 20 });
       setResults(data.results ?? []);
     } finally {
       setLoading(false);

@@ -6,10 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SourceCard } from "@/components/juridisch/source-card";
 import { ClaimLabelBadge } from "@/components/juridisch/claim-label-badge";
 import { TEST_CASES } from "@/legal/seed/test-cases";
-import type { CaseAnalysisResult } from "@/legal/types";
+import {
+  analyzeCase,
+  analysisToMarkdown,
+  downloadTextFile,
+} from "@/legal/client/browser-api";
+import type { CaseAnalysisResult, IssueTreeNode } from "@/legal/types";
 import { Loader2, Download, FileText } from "lucide-react";
-
-import type { IssueTreeNode } from "@/legal/types";
 
 function IssueTreeView({ node, depth = 0 }: { node: IssueTreeNode; depth?: number }) {
   return (
@@ -34,13 +37,12 @@ export default function CasusPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/juridisch/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ narrative, municipality: municipality || undefined }),
-      });
-      if (!res.ok) throw new Error("Analyse mislukt");
-      setAnalysis(await res.json());
+      setAnalysis(
+        await analyzeCase({
+          narrative,
+          municipality: municipality || undefined,
+        })
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Onbekende fout");
     } finally {
@@ -48,18 +50,9 @@ export default function CasusPage() {
     }
   }
 
-  async function handleExport(format: "markdown" | "docx") {
-    const res = await fetch("/api/juridisch/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ narrative, municipality, format }),
-    });
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `casusanalyse.${format === "markdown" ? "md" : "docx"}`;
-    a.click();
+  function handleExportMarkdown() {
+    if (!analysis) return;
+    downloadTextFile("casusanalyse.md", analysisToMarkdown(analysis));
   }
 
   return (
@@ -100,14 +93,9 @@ export default function CasusPage() {
           Analyseren
         </Button>
         {analysis && (
-          <>
-            <Button variant="outline" onClick={() => handleExport("markdown")}>
-              <Download className="h-4 w-4 mr-2" /> Markdown
-            </Button>
-            <Button variant="outline" onClick={() => handleExport("docx")}>
-              <Download className="h-4 w-4 mr-2" /> DOCX
-            </Button>
-          </>
+          <Button variant="outline" onClick={handleExportMarkdown}>
+            <Download className="h-4 w-4 mr-2" /> Markdown
+          </Button>
         )}
       </div>
 

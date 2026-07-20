@@ -1,5 +1,13 @@
-import { createHash } from "crypto";
 import type { Citation, LegalDocument } from "../types";
+
+function simpleHash(text: string): string {
+  // Browser-safe hash (not cryptographic; for citation integrity checks)
+  let h = 0;
+  for (let i = 0; i < text.length; i++) {
+    h = (Math.imul(31, h) + text.charCodeAt(i)) | 0;
+  }
+  return `h${(h >>> 0).toString(16)}`;
+}
 
 export class CitationValidator {
   verifyPassage(
@@ -9,7 +17,7 @@ export class CitationValidator {
   ): Citation {
     const fullText = document.fullText ?? "";
     const verified = fullText.length > 0 && fullText.includes(passage);
-    const textHash = fullText ? createHash("sha256").update(fullText).digest("hex") : undefined;
+    const textHash = fullText ? simpleHash(fullText) : undefined;
 
     return {
       id: `cite-${Date.now()}`,

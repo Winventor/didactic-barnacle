@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SourceCard } from "@/components/juridisch/source-card";
 import { ClaimLabelBadge } from "@/components/juridisch/claim-label-badge";
+import { searchDefinitions } from "@/legal/client/browser-api";
 import type { DefinitionResult } from "@/legal/types";
 import { Search, Loader2 } from "lucide-react";
 
@@ -31,9 +32,7 @@ export default function DefinitiesPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/juridisch/definitions?term=${encodeURIComponent(q)}`);
-      if (!res.ok) throw new Error("Zoeken mislukt");
-      setResult(await res.json());
+      setResult(await searchDefinitions(q));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Onbekende fout");
     } finally {

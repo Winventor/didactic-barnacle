@@ -58,6 +58,17 @@ export default function JuridischDashboard() {
           Onderzoeks-, analyse- en claimplatform voor Nederlands recht en Europees recht dat in
           Nederland van toepassing is. Uitsluitend officiële en openbaar toegankelijke bronnen.
         </p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Ook beschikbaar op GitHub Pages:{" "}
+          <a
+            className="text-primary underline"
+            href="https://winventor.github.io/didactic-barnacle/juridisch/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            winventor.github.io/didactic-barnacle/juridisch/
+          </a>
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
