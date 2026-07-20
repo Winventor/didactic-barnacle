@@ -3,6 +3,8 @@
   --legal-accent: 45 90% 50%;
   --legal-muted: 220 15% 95%;
   --legal-border: 220 20% 88%;
+  font-size: 18px;
+  line-height: 1.6;
 }
 
 .dark .juridisch-theme {
@@ -12,12 +14,70 @@
   --legal-border: 220 15% 25%;
 }
 
+.juridisch-theme h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.juridisch-theme h2 {
+  font-size: 1.375rem;
+  line-height: 1.35;
+}
+
+.juridisch-theme h3 {
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+
+.juridisch-theme p,
+.juridisch-theme li,
+.juridisch-theme label,
+.juridisch-theme textarea,
+.juridisch-theme input,
+.juridisch-theme select,
+.juridisch-theme button {
+  font-size: 1rem;
+}
+
+.juridisch-theme .text-xs {
+  font-size: 0.875rem !important;
+  line-height: 1.4;
+}
+
+.juridisch-theme .text-sm {
+  font-size: 1rem !important;
+  line-height: 1.55;
+}
+
+.juridisch-theme .text-lg {
+  font-size: 1.25rem !important;
+}
+
+.juridisch-theme .text-2xl {
+  font-size: 1.75rem !important;
+  line-height: 1.3;
+}
+
+.juridisch-theme .text-3xl {
+  font-size: 2.25rem !important;
+  line-height: 1.2;
+}
+
+.juridisch-theme textarea,
+.juridisch-theme input,
+.juridisch-theme select {
+  line-height: 1.5;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
 .label-bron {
   display: inline-flex;
   align-items: center;
   border-radius: 0.25rem;
-  padding: 0.125rem 0.5rem;
-  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.875rem;
   font-weight: 500;
   background-color: rgb(209 250 229);
   color: rgb(22 101 52);
@@ -32,8 +92,8 @@
   display: inline-flex;
   align-items: center;
   border-radius: 0.25rem;
-  padding: 0.125rem 0.5rem;
-  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.875rem;
   font-weight: 500;
   background-color: rgb(219 234 254);
   color: rgb(30 64 175);
@@ -48,8 +108,8 @@
   display: inline-flex;
   align-items: center;
   border-radius: 0.25rem;
-  padding: 0.125rem 0.5rem;
-  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.875rem;
   font-weight: 500;
   background-color: rgb(254 243 199);
   color: rgb(146 64 14);
@@ -64,18 +124,19 @@
   border-radius: 0.5rem;
   border: 1px solid hsl(var(--legal-border));
   background-color: hsl(var(--card));
-  padding: 1rem;
+  padding: 1.1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .legal-warning {
   border-radius: 0.5rem;
   border: 1px solid rgb(252 211 77);
   background-color: rgb(255 251 235);
-  padding: 1rem;
-  font-size: 0.875rem;
+  padding: 1rem 1.1rem;
+  font-size: 1rem;
+  line-height: 1.55;
   color: rgb(120 53 15);
 }
 
@@ -83,4 +144,14 @@
   border-color: rgb(180 83 9);
   background-color: rgb(69 26 3 / 0.3);
   color: rgb(252 211 77);
+}
+
+@media (max-width: 640px) {
+  .juridisch-theme {
+    font-size: 17px;
+  }
+
+  .juridisch-theme h1 {
+    font-size: 1.75rem;
+  }
 }

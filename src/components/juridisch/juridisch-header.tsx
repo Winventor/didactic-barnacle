@@ -31,8 +31,8 @@ export function JuridischHeader() {
     <header className="border-b bg-card">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/juridisch" className="flex items-center gap-2 font-semibold text-lg">
-            <Scale className="h-6 w-6 text-[hsl(var(--legal-primary))]" />
+          <Link href="/juridisch" className="flex items-center gap-2 font-semibold text-xl">
+            <Scale className="h-7 w-7 text-[hsl(var(--legal-primary))]" />
             Juridisch Onderzoeksplatform
           </Link>
           <nav className="hidden md:flex items-center gap-1">
@@ -41,13 +41,13 @@ export function JuridischHeader() {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-3 py-2 text-sm transition-colors",
+                  "flex items-center gap-1.5 rounded-md px-3 py-2.5 text-base transition-colors",
                   pathname === href
                     ? "bg-[hsl(var(--legal-primary))] text-white"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-5 w-5" />
                 {label}
               </Link>
             ))}
@@ -59,7 +59,7 @@ export function JuridischHeader() {
               key={href}
               href={href}
               className={cn(
-                "whitespace-nowrap rounded-md px-3 py-1.5 text-xs",
+                "whitespace-nowrap rounded-md px-3 py-2 text-sm",
                 pathname === href ? "bg-primary text-primary-foreground" : "bg-muted"
               )}
             >
