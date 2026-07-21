@@ -1,108 +1,209 @@
 import { BaseAdapter, buildOfficialUrl } from "./base-adapter";
 import { parseXmlSafe, extractTextContent } from "../utils/xml-safe";
 import { queryText } from "../utils/query-text";
+import { fetchLegal } from "../utils/browser-fetch";
 import { extractPassages, termMatches } from "../utils/definition-extractor";
+import {
+  buildMetadataSearchUrl,
+  buildOfficialSearchUrl,
+  entryMatchesTerm,
+  institutionFromEcli,
+  isEcli,
+  parseRechtspraakAtomFeed,
+  rankEntry,
+  RECHTSPRAAK_CONTENT_URL,
+  type RechtspraakAtomEntry,
+  type RechtspraakSearchOptions,
+} from "../utils/rechtspraak-search";
 import type { LegalSearchQuery, LegalSearchResult, LegalDocument } from "../types";
-
-interface AtomEntry {
-  id?: string;
-  title?: unknown;
-  summary?: unknown;
-  updated?: string;
-  link?: { "@_rel"?: string; "@_href"?: string } | Array<{ "@_rel"?: string; "@_href"?: string }>;
-}
 
 export class RechtspraakOpenDataAdapter extends BaseAdapter {
   id = "rechtspraak";
   name = "Rechtspraak.nl Open Data";
   jurisdiction = "NL_NATIONAAL" as const;
 
-  private readonly apiUrl = "https://data.rechtspraak.nl/uitspraken/zoeken";
-
   async search(query: LegalSearchQuery): Promise<LegalSearchResult[]> {
     return this.cachedFetch(JSON.stringify(query), () => this.doSearch(query));
   }
 
   private async doSearch(query: LegalSearchQuery): Promise<LegalSearchResult[]> {
-    const text = queryText(query);
-    const params = new URLSearchParams({
-      max: String(query.limit ?? 10),
-    });
+    const text = queryText(query).trim();
+    const ecli = query.identifier?.trim() || (isEcli(text) ? text : "");
 
-    if (query.identifier?.startsWith("ECLI")) {
-      params.set("id", query.identifier);
-    } else if (text) {
-      params.set("zoektekst", text);
-    } else {
+    if (ecli) {
+      return this.searchByEcli(ecli, query.limit ?? 10);
+    }
+
+    if (!text) {
       return this.fallbackSearch(query);
     }
 
-    if (query.dateFrom) params.set("datumUitspraakVan", query.dateFrom);
-    if (query.dateTo) params.set("datumUitspraakTot", query.dateTo);
-    if (query.offset) params.set("start", String(query.offset));
+    try {
+      const results = await this.searchByKeyword(text, {
+        limit: query.limit ?? 10,
+        dateFrom: query.dateFrom,
+        dateTo: query.dateTo,
+      });
+      if (results.length > 0) return results;
+    } catch {
+      // fallback hieronder
+    }
+
+    return this.fallbackSearch(query);
+  }
+
+  private async searchByEcli(ecli: string, limit: number): Promise<LegalSearchResult[]> {
+    const contentUrl = `${RECHTSPRAAK_CONTENT_URL}?id=${encodeURIComponent(ecli)}`;
+    let snippet = `Uitspraak ${ecli}`;
 
     try {
-      const response = await this.rateLimitedFetch(`${this.apiUrl}?${params}`, {
-        headers: { Accept: "application/atom+xml, application/xml" },
+      const response = await fetchLegal(contentUrl, {
+        headers: { Accept: "application/xml" },
+      });
+      if (response.ok) {
+        const xml = await response.text();
+        const plain = extractTextContent(parseXmlSafe(xml));
+        snippet = plain.slice(0, 500) || snippet;
+      }
+    } catch {
+      // metadata/snippet blijft fallback
+    }
+
+    const metadataResults = await this.fetchMetadataPage(
+      buildMetadataSearchUrl({ pageSize: 5, dateFrom: "1990-01-01" })
+    );
+    const meta = metadataResults.find((entry) => entry.ecli === ecli);
+
+    return [
+      this.entryToResult(
+        meta ?? {
+          ecli,
+          title: ecli,
+          summary: snippet,
+          officialUrl: buildOfficialUrl("ecli", ecli),
+        },
+        ""
+      ),
+    ].slice(0, limit);
+  }
+
+  private async searchByKeyword(
+    term: string,
+    options: RechtspraakSearchOptions & { limit: number }
+  ): Promise<LegalSearchResult[]> {
+    const limit = options.limit;
+    const matches = new Map<string, LegalSearchResult>();
+    const pageSize = options.pageSize ?? 100;
+    const maxPages = options.maxPages ?? 6;
+
+    for (let page = 0; page < maxPages && matches.size < limit; page++) {
+      const url = buildMetadataSearchUrl({
+        ...options,
+        pageSize,
+        from: page * pageSize,
       });
 
-      if (!response.ok) return this.fallbackSearch(query);
+      const entries = await this.fetchMetadataPage(url);
+      for (const entry of entries) {
+        if (!entryMatchesTerm(entry, term)) continue;
+        const result = this.entryToResult(entry, term);
+        const existing = matches.get(entry.ecli);
+        if (!existing || (result.relevanceScore ?? 0) > (existing.relevanceScore ?? 0)) {
+          matches.set(entry.ecli, result);
+        }
+        if (matches.size >= limit) break;
+      }
 
-      const xml = await response.text();
-      const results = this.parseAtomFeed(xml, text);
-
-      if (results.length === 0) return this.fallbackSearch(query);
-      return results;
-    } catch {
-      return this.fallbackSearch(query);
+      if (entries.length < pageSize) break;
     }
+
+    if (matches.size < limit) {
+      const enriched = await this.enrichWithFullText([...matches.values()], term, limit);
+      return enriched.slice(0, limit);
+    }
+
+    return [...matches.values()]
+      .sort((a, b) => (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0))
+      .slice(0, limit);
   }
 
-  private parseAtomFeed(xml: string, queryText: string): LegalSearchResult[] {
-    try {
-      const parsed = parseXmlSafe<Record<string, unknown>>(xml);
-      const feed = (parsed.feed ?? parsed) as Record<string, unknown>;
-      const entries = feed.entry;
-      if (!entries) return [];
+  private async enrichWithFullText(
+    current: LegalSearchResult[],
+    term: string,
+    limit: number
+  ): Promise<LegalSearchResult[]> {
+    const found = new Map(current.map((r) => [r.identifier ?? r.id, r]));
+    const candidates = await this.fetchMetadataPage(
+      buildMetadataSearchUrl({ pageSize: 80, maxPages: 1 })
+    );
 
-      const entryList = Array.isArray(entries) ? entries : [entries];
-      return entryList.map((entry) => this.entryToResult(entry as AtomEntry, queryText));
-    } catch {
-      return [];
+    for (const entry of candidates) {
+      if (found.size >= limit) break;
+      if (found.has(entry.ecli)) continue;
+
+      try {
+        const contentUrl = `${RECHTSPRAAK_CONTENT_URL}?id=${encodeURIComponent(entry.ecli)}`;
+        const response = await fetchLegal(contentUrl, {
+          headers: { Accept: "application/xml" },
+        });
+        if (!response.ok) continue;
+        const xml = await response.text();
+        const plain = extractTextContent(parseXmlSafe(xml));
+        if (!termMatches(plain, term)) continue;
+
+        const passages = extractPassages(plain, term, { maxPassages: 1 });
+        found.set(entry.ecli, {
+          ...this.entryToResult(entry, term),
+          snippet: passages[0] ?? entry.summary,
+          relevanceScore: 0.95,
+          metadata: { searchScope: "fullText" },
+        });
+      } catch {
+        // volgende kandidaat
+      }
     }
+
+    return [...found.values()].sort(
+      (a, b) => (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0)
+    );
   }
 
-  private entryToResult(entry: AtomEntry, queryText: string): LegalSearchResult {
-    const ecli = typeof entry.id === "string" ? entry.id : extractTextContent(entry.id);
-    const title = extractTextContent(entry.title) || ecli;
-    const summary = extractTextContent(entry.summary);
-    const link = entry.link;
-    const links = Array.isArray(link) ? link : link ? [link] : [];
-    const alternate =
-      links.find((l) => l["@_rel"] === "alternate")?.["@_href"] ??
-      (ecli ? buildOfficialUrl("ecli", ecli) : "https://uitspraken.rechtspraak.nl/");
+  private async fetchMetadataPage(url: string): Promise<RechtspraakAtomEntry[]> {
+    const response = await fetchLegal(url, {
+      headers: { Accept: "application/atom+xml, application/xml" },
+    });
+    if (!response.ok) {
+      throw new Error(`Rechtspraak metadata zoeken mislukt (${response.status})`);
+    }
+    const xml = await response.text();
+    return parseRechtspraakAtomFeed(xml);
+  }
 
-    const snippet =
-      summary && summary !== "-"
-        ? summary
-        : queryText
-          ? `Volledige uitspraaktekst doorzoekbaar op rechtspraak.nl voor: ${queryText}`
-          : title;
-
+  private entryToResult(entry: RechtspraakAtomEntry, term: string): LegalSearchResult {
+    const ecli = entry.ecli;
     const isAg = ecli.includes(":PHR:");
-  return {
-      id: ecli || `rp-${Date.now()}`,
+    const snippet =
+      entry.summary ||
+      (term
+        ? `Vermelding van "${term}" in metadata of uitspraak ${ecli}`
+        : entry.title);
+
+    return {
+      id: ecli,
       adapterId: this.id,
-      title,
+      title: entry.title,
       snippet: snippet.slice(0, 500),
       jurisdiction: "NL_NATIONAAL",
       sourceType: isAg ? "CONCLUSIE_ADVOCAAT_GENERAAL" : "NATIONALE_JURISPRUDENTIE",
       authorityLevel: this.getAuthorityLevel(ecli),
       identifier: ecli,
-      officialUrl: alternate,
+      officialUrl: entry.officialUrl,
       date: entry.updated?.split("T")[0],
-      relevanceScore: summary && summary !== "-" ? 0.9 : 0.7,
-      metadata: { searchScope: "fullText" },
+      relevanceScore: term ? rankEntry(entry, term) : 0.7,
+      metadata: {
+        searchScope: entry.summary ? "metadata" : "metadata",
+        institution: institutionFromEcli(ecli),
+      },
     };
   }
 
@@ -119,12 +220,13 @@ export class RechtspraakOpenDataAdapter extends BaseAdapter {
       {
         id: `rp-search-${Date.now()}`,
         adapterId: this.id,
-        title: `Jurisprudentie: ${text}`,
-        snippet: `Doorzoek volledige uitspraken op rechtspraak.nl voor: ${text}`,
+        title: `Zoek op rechtspraak.nl: ${text}`,
+        snippet:
+          "Live zoeken via Open Data vereist een server-API (CORS). Gebruik de officiële zoeklink of deploy met API-routes.",
         jurisdiction: "NL_NATIONAAL",
         sourceType: "NATIONALE_JURISPRUDENTIE",
         authorityLevel: "PERSUASIEF",
-        officialUrl: `https://uitspraken.rechtspraak.nl/resultaat?zoekterm=${encodeURIComponent(text)}`,
+        officialUrl: buildOfficialSearchUrl(text),
         relevanceScore: 0.1,
         metadata: { searchScope: "fallback" },
       },
@@ -133,19 +235,18 @@ export class RechtspraakOpenDataAdapter extends BaseAdapter {
 
   async fetchDocument(identifier: string): Promise<LegalDocument> {
     const ecli = identifier;
-    const contentUrl = `https://data.rechtspraak.nl/uitspraken/content?id=${encodeURIComponent(ecli)}`;
+    const contentUrl = `${RECHTSPRAAK_CONTENT_URL}?id=${encodeURIComponent(ecli)}`;
 
     let fullText: string | undefined;
     try {
-      const response = await this.rateLimitedFetch(contentUrl, {
+      const response = await fetchLegal(contentUrl, {
         headers: { Accept: "application/xml" },
       });
       if (response.ok) {
-        const xml = await response.text();
-        fullText = extractTextContent(parseXmlSafe(xml)).slice(0, 100000);
+        fullText = extractTextContent(parseXmlSafe(await response.text())).slice(0, 100000);
       }
     } catch {
-      // content may not be available
+      // content niet beschikbaar
     }
 
     const results = await this.search({ identifier: ecli, limit: 1 });
@@ -161,7 +262,7 @@ export class RechtspraakOpenDataAdapter extends BaseAdapter {
         ? "CONCLUSIE_ADVOCAAT_GENERAAL"
         : "NATIONALE_JURISPRUDENTIE",
       authorityLevel: this.getAuthorityLevel(ecli),
-      institution: this.getInstitution(ecli),
+      institution: institutionFromEcli(ecli),
       date: hit?.date,
       identifiers: { ecli },
       officialUrl: buildOfficialUrl("ecli", ecli),
@@ -177,17 +278,6 @@ export class RechtspraakOpenDataAdapter extends BaseAdapter {
       ...doc,
       fragments: passages.map((text, i) => ({ id: `rp-frag-${i}`, text })),
     };
-  }
-
-  private getInstitution(ecli: string): string {
-    if (ecli.includes(":HR:")) return "Hoge Raad";
-    if (ecli.includes(":RVS:")) return "Raad van State";
-    if (ecli.includes(":CRVB:")) return "Centrale Raad van Beroep";
-    if (ecli.includes(":CBB:")) return "College van Beroep voor het bedrijfsleven";
-    if (ecli.includes(":PHR:")) return "Parket bij de Hoge Raad";
-    if (ecli.includes(":GH")) return "Gerechtshof";
-    if (ecli.includes(":RB")) return "Rechtbank";
-    return "Nederlandse rechter";
   }
 
   normalize(raw: unknown): LegalDocument {

@@ -10,6 +10,8 @@ import { claimGeneratorService } from "../services/claim-generator-service";
 import { searchOrchestrator } from "../services/search-orchestrator";
 import { exportService } from "../services/export-service";
 import { SOURCE_REGISTRY } from "../config/source-registry";
+import { apiBaseUrl, isStaticHost } from "../utils/browser-fetch";
+import { isEcli } from "../utils/rechtspraak-search";
 import type {
   CaseAnalysisResult,
   ClaimDraft,
@@ -19,7 +21,24 @@ import type {
   SourceHealth,
 } from "../types";
 
+async function fetchServerApi<T>(path: string): Promise<T | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const response = await fetch(`${apiBaseUrl()}${path}`, {
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
 export async function searchDefinitions(term: string): Promise<DefinitionResult> {
+  const fromApi = await fetchServerApi<DefinitionResult>(
+    `/api/juridisch/definitions?term=${encodeURIComponent(term)}`
+  );
+  if (fromApi) return fromApi;
   return definitionService.search(term);
 }
 
@@ -53,15 +72,27 @@ export async function searchSources(input: {
   adapter?: string;
   limit?: number;
 }): Promise<{ query: string; count: number; results: LegalSearchResult[] }> {
+  const params = new URLSearchParams({
+    q: input.q,
+    limit: String(input.limit ?? 20),
+  });
+  if (input.adapter) params.set("adapter", input.adapter);
+
+  const fromApi = await fetchServerApi<{
+    query: string;
+    count: number;
+    results: LegalSearchResult[];
+  }>(`/api/juridisch/search?${params.toString()}`);
+
+  if (fromApi) return fromApi;
+
+  const query = isEcli(input.q)
+    ? { identifier: input.q.trim(), limit: input.limit ?? 20 }
+    : { text: input.q, limit: input.limit ?? 20 };
+
   const results = input.adapter
-    ? await searchOrchestrator.searchAll(
-        { text: input.q, limit: input.limit ?? 20 },
-        [input.adapter]
-      )
-    : await searchOrchestrator.searchByPriority({
-        text: input.q,
-        limit: input.limit ?? 20,
-      });
+    ? await searchOrchestrator.searchAll(query, [input.adapter])
+    : await searchOrchestrator.searchByPriority(query);
 
   return { query: input.q, count: results.length, results };
 }
@@ -71,7 +102,6 @@ export async function getSourcesHealth(): Promise<{
   health: SourceHealth[];
   checkedAt: string;
 }> {
-  // On static hosting, prefer registry metadata; attempt live checks with timeout
   let health: SourceHealth[] = [];
   try {
     health = await Promise.race([
@@ -96,7 +126,9 @@ export async function getSourcesHealth(): Promise<{
       adapterId: s.id,
       status: "DEGRADED" as const,
       lastChecked: new Date().toISOString(),
-      message: "Live check niet beschikbaar op static hosting (CORS)",
+      message: isStaticHost()
+        ? "Live check via static hosting beperkt (CORS) – gebruik server-deploy of API-base URL"
+        : "Live check niet beschikbaar",
     }));
   }
 
@@ -126,8 +158,4 @@ export function downloadTextFile(filename: string, content: string, mime = "text
 }
 
 /** Prefer client-side API on static hosts; try server API when available. */
-export function isStaticHost(): boolean {
-  if (typeof window === "undefined") return false;
-  const host = window.location.hostname;
-  return host.endsWith("github.io") || host === "localhost" && process.env.NEXT_PUBLIC_STATIC === "true";
-}
+export { isStaticHost };

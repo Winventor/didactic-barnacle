@@ -7,7 +7,12 @@ import {
   plainTextFromBwbXml,
 } from "../utils/definition-extractor";
 import { buildBwbCql, pickLatestRepositoryUrl } from "../utils/bwb-repository";
-import { RechtspraakOpenDataAdapter } from "../adapters/rechtspraak";
+import {
+  buildMetadataSearchUrl,
+  entryMatchesTerm,
+  isEcli,
+  parseRechtspraakAtomFeed,
+} from "../utils/rechtspraak-search";
 
 const SAMPLE_BWB_XML = `<?xml version="1.0"?><toestand bwb-id="BWBR0001854">
   <wetgeving><wet-besluit><wettekst>
@@ -73,12 +78,28 @@ describe("bwb-repository", () => {
   });
 });
 
-describe("RechtspraakOpenDataAdapter", () => {
-  it("parseert Atom XML feeds", async () => {
-    const adapter = new RechtspraakOpenDataAdapter();
-    const results = (
-      adapter as unknown as { parseAtomFeed: (xml: string, q: string) => { identifier?: string }[] }
-    ).parseAtomFeed(SAMPLE_ATOM, "belaging");
-    expect(results[0]?.identifier).toBe("ECLI:NL:HR:2020:1");
+describe("rechtspraak-search", () => {
+  it("herkent ECLI-patronen", () => {
+    expect(isEcli("ECLI:NL:HR:2024:1900")).toBe(true);
+    expect(isEcli("belaging")).toBe(false);
+  });
+
+  it("parseert Atom XML feeds", () => {
+    const results = parseRechtspraakAtomFeed(SAMPLE_ATOM);
+    expect(results[0]?.ecli).toBe("ECLI:NL:HR:2020:1");
+    expect(results[0]?.summary).toContain("belaging");
+  });
+
+  it("matcht zoektermen in metadata", () => {
+    const entry = parseRechtspraakAtomFeed(SAMPLE_ATOM)[0];
+    expect(entryMatchesTerm(entry, "belaging")).toBe(true);
+    expect(entryMatchesTerm(entry, "proportionaliteit")).toBe(false);
+  });
+
+  it("bouwt metadata-zoek-URL zonder ongeldige zoektekst-parameter", () => {
+    const url = buildMetadataSearchUrl({ pageSize: 50, from: 0 });
+    expect(url).toContain("data.rechtspraak.nl");
+    expect(url).toContain("modified=");
+    expect(url).not.toContain("zoektekst");
   });
 });
