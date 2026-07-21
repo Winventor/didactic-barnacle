@@ -1,23 +1,15 @@
 import { BaseAdapter, buildOfficialUrl } from "./base-adapter";
+import { parseXmlSafe, extractTextContent } from "../utils/xml-safe";
 import { queryText } from "../utils/query-text";
+import { extractPassages, termMatches } from "../utils/definition-extractor";
 import type { LegalSearchQuery, LegalSearchResult, LegalDocument } from "../types";
 
-interface RechtspraakHit {
+interface AtomEntry {
   id?: string;
-  titel?: string;
-  type?: string;
-  datumUitspraak?: string;
-  datumPublicatie?: string;
-  instantie?: string;
-  rechtsgebieden?: string[];
-  inhoudsindicatie?: string;
-  ecli?: string;
-  zaaknummer?: string;
-}
-
-interface RechtspraakResponse {
-  results?: RechtspraakHit[];
-  totaal?: number;
+  title?: unknown;
+  summary?: unknown;
+  updated?: string;
+  link?: { "@_rel"?: string; "@_href"?: string } | Array<{ "@_rel"?: string; "@_href"?: string }>;
 }
 
 export class RechtspraakOpenDataAdapter extends BaseAdapter {
@@ -32,50 +24,85 @@ export class RechtspraakOpenDataAdapter extends BaseAdapter {
   }
 
   private async doSearch(query: LegalSearchQuery): Promise<LegalSearchResult[]> {
-    const body: Record<string, unknown> = {
-      start: query.offset ?? 0,
-      max: query.limit ?? 10,
-    };
+    const text = queryText(query);
+    const params = new URLSearchParams({
+      max: String(query.limit ?? 10),
+    });
 
     if (query.identifier?.startsWith("ECLI")) {
-      body.id = query.identifier;
+      params.set("id", query.identifier);
+    } else if (text) {
+      params.set("zoektekst", text);
     } else {
-      body.zoektekst = query.text ?? query.identifier ?? "";
+      return this.fallbackSearch(query);
     }
 
-    if (query.dateFrom) body.datumUitspraakVan = query.dateFrom;
-    if (query.dateTo) body.datumUitspraakTot = query.dateTo;
+    if (query.dateFrom) params.set("datumUitspraakVan", query.dateFrom);
+    if (query.dateTo) params.set("datumUitspraakTot", query.dateTo);
+    if (query.offset) params.set("start", String(query.offset));
 
     try {
-      const response = await this.rateLimitedFetch(this.apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(body),
+      const response = await this.rateLimitedFetch(`${this.apiUrl}?${params}`, {
+        headers: { Accept: "application/atom+xml, application/xml" },
       });
 
       if (!response.ok) return this.fallbackSearch(query);
 
-      const data = (await response.json()) as RechtspraakResponse;
-      return (data.results ?? []).map((hit) => this.hitToResult(hit));
+      const xml = await response.text();
+      const results = this.parseAtomFeed(xml, text);
+
+      if (results.length === 0) return this.fallbackSearch(query);
+      return results;
     } catch {
       return this.fallbackSearch(query);
     }
   }
 
-  private hitToResult(hit: RechtspraakHit): LegalSearchResult {
-    const ecli = hit.ecli ?? hit.id ?? "";
+  private parseAtomFeed(xml: string, queryText: string): LegalSearchResult[] {
+    try {
+      const parsed = parseXmlSafe<Record<string, unknown>>(xml);
+      const feed = (parsed.feed ?? parsed) as Record<string, unknown>;
+      const entries = feed.entry;
+      if (!entries) return [];
+
+      const entryList = Array.isArray(entries) ? entries : [entries];
+      return entryList.map((entry) => this.entryToResult(entry as AtomEntry, queryText));
+    } catch {
+      return [];
+    }
+  }
+
+  private entryToResult(entry: AtomEntry, queryText: string): LegalSearchResult {
+    const ecli = typeof entry.id === "string" ? entry.id : extractTextContent(entry.id);
+    const title = extractTextContent(entry.title) || ecli;
+    const summary = extractTextContent(entry.summary);
+    const link = entry.link;
+    const links = Array.isArray(link) ? link : link ? [link] : [];
+    const alternate =
+      links.find((l) => l["@_rel"] === "alternate")?.["@_href"] ??
+      (ecli ? buildOfficialUrl("ecli", ecli) : "https://uitspraken.rechtspraak.nl/");
+
+    const snippet =
+      summary && summary !== "-"
+        ? summary
+        : queryText
+          ? `Volledige uitspraaktekst doorzoekbaar op rechtspraak.nl voor: ${queryText}`
+          : title;
+
     const isAg = ecli.includes(":PHR:");
-    return {
+  return {
       id: ecli || `rp-${Date.now()}`,
       adapterId: this.id,
-      title: hit.titel ?? ecli,
-      snippet: hit.inhoudsindicatie ?? hit.titel ?? "",
+      title,
+      snippet: snippet.slice(0, 500),
       jurisdiction: "NL_NATIONAAL",
       sourceType: isAg ? "CONCLUSIE_ADVOCAAT_GENERAAL" : "NATIONALE_JURISPRUDENTIE",
       authorityLevel: this.getAuthorityLevel(ecli),
       identifier: ecli,
-      officialUrl: ecli ? buildOfficialUrl("ecli", ecli) : "https://uitspraken.rechtspraak.nl/",
-      date: hit.datumUitspraak,
+      officialUrl: alternate,
+      date: entry.updated?.split("T")[0],
+      relevanceScore: summary && summary !== "-" ? 0.9 : 0.7,
+      metadata: { searchScope: "fullText" },
     };
   }
 
@@ -93,11 +120,13 @@ export class RechtspraakOpenDataAdapter extends BaseAdapter {
         id: `rp-search-${Date.now()}`,
         adapterId: this.id,
         title: `Jurisprudentie: ${text}`,
-        snippet: `Zoek op rechtspraak.nl voor: ${text}`,
+        snippet: `Doorzoek volledige uitspraken op rechtspraak.nl voor: ${text}`,
         jurisdiction: "NL_NATIONAAL",
         sourceType: "NATIONALE_JURISPRUDENTIE",
         authorityLevel: "PERSUASIEF",
         officialUrl: `https://uitspraken.rechtspraak.nl/resultaat?zoekterm=${encodeURIComponent(text)}`,
+        relevanceScore: 0.1,
+        metadata: { searchScope: "fallback" },
       },
     ];
   }
@@ -112,7 +141,8 @@ export class RechtspraakOpenDataAdapter extends BaseAdapter {
         headers: { Accept: "application/xml" },
       });
       if (response.ok) {
-        fullText = (await response.text()).slice(0, 100000);
+        const xml = await response.text();
+        fullText = extractTextContent(parseXmlSafe(xml)).slice(0, 100000);
       }
     } catch {
       // content may not be available
@@ -136,6 +166,16 @@ export class RechtspraakOpenDataAdapter extends BaseAdapter {
       identifiers: { ecli },
       officialUrl: buildOfficialUrl("ecli", ecli),
       fetchedAt: new Date().toISOString(),
+      metadata: { searchScope: "fullText" },
+    };
+  }
+
+  async enrichWithPassages(doc: LegalDocument, term: string): Promise<LegalDocument> {
+    if (!doc.fullText || !termMatches(doc.fullText, term)) return doc;
+    const passages = extractPassages(doc.fullText, term, { maxPassages: 5 });
+    return {
+      ...doc,
+      fragments: passages.map((text, i) => ({ id: `rp-frag-${i}`, text })),
     };
   }
 
@@ -151,7 +191,7 @@ export class RechtspraakOpenDataAdapter extends BaseAdapter {
   }
 
   normalize(raw: unknown): LegalDocument {
-    const data = raw as RechtspraakHit;
+    const data = raw as { ecli?: string; id?: string; titel?: string };
     const ecli = data.ecli ?? data.id ?? "unknown";
     return {
       id: ecli,
