@@ -49,10 +49,13 @@ In dezelfde repository staat ook het **TES Labour Intelligence Platform** — ee
 | Beleidsdashboard | `/` | OpenRaadsinformatie beleidsdocumenten |
 | TES Labour Intelligence | `/tes` | Arbeidsmarktprognoses en TES-analyse |
 | Juridisch Onderzoeksplatform | `/juridisch` | NL/EU juridisch onderzoek en claimgeneratie |
+| Walda Loopbaanscan | `/walda/loopbaanscan` | Drielaags loopbaaninstrument (quickscan, verdieping, voortgang) |
 
 **Juridisch platform starten:** [http://localhost:3000/juridisch](http://localhost:3000/juridisch)
 
 Zie [docs/juridisch/README.md](docs/juridisch/README.md) voor installatie, API en bronnen.
+
+**Walda Loopbaanscan:** [http://localhost:3000/walda/loopbaanscan](http://localhost:3000/walda/loopbaanscan)
 
 **TES starten:** [http://localhost:3000/tes](http://localhost:3000/tes)
 

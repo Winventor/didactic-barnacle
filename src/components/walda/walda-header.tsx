@@ -14,6 +14,12 @@ export function WaldaHeader() {
         </Link>
         <nav className="hidden sm:flex items-center gap-4 text-sm text-muted-foreground">
           <Link
+            href="/walda/loopbaanscan"
+            className="hover:text-foreground transition-colors"
+          >
+            Loopbaanscan
+          </Link>
+          <Link
             href="/walda/depressietest"
             className="hover:text-foreground transition-colors"
           >

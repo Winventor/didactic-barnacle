@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["src/legal/**/*.test.ts"],
+    include: ["src/legal/**/*.test.ts", "src/lib/walda/**/*.test.ts"],
   },
   resolve: {
     alias: {
