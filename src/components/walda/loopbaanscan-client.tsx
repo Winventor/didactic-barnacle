@@ -26,6 +26,7 @@ import {
   allProgressAnswered,
   allQuickscanAnswered,
   ATTENTION_THRESHOLD,
+  buildClientAdviceResult,
   buildProfileNarrative,
   calculateAllBlockScores,
   calculateProgressBlockScores,
@@ -35,11 +36,10 @@ import {
   getModuleById,
   getRecommendedModules,
   getSignalLevel,
-  inferDominantTargetGroups,
+  getSuggestedModules,
   isModuleComplete,
   LIKERT_LABELS,
   LIKERT_MAX,
-  matchSignalProfiles,
   MEANINGFUL_CHANGE,
   OPEN_QUESTIONS,
   PROGRESS_ITEMS,
@@ -231,15 +231,19 @@ export function LoopbaanscanClient() {
     [blockScores],
   );
 
-  const signalProfiles = useMemo(
-    () => (blockScores ? matchSignalProfiles(blockScores, answers) : []),
+  const suggestedModules = useMemo(
+    () => (blockScores ? getSuggestedModules(blockScores) : []),
+    [blockScores],
+  );
+
+  const adviceResult = useMemo(
+    () =>
+      blockScores ? buildClientAdviceResult(blockScores, answers) : null,
     [blockScores, answers],
   );
 
-  const targetGroups = useMemo(
-    () => (blockScores ? inferDominantTargetGroups(blockScores, answers) : []),
-    [blockScores, answers],
-  );
+  const signalProfiles = adviceResult?.profiles ?? [];
+  const targetGroups = adviceResult?.targetGroups ?? [];
 
   const narrative = useMemo(
     () =>
@@ -629,15 +633,59 @@ export function LoopbaanscanClient() {
                   ))}
                 </div>
               )}
+              {adviceResult?.profiles[0] && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Signaalprofiel:{" "}
+                  <span className="font-medium text-foreground">
+                    {adviceResult.profiles[0].name}
+                  </span>
+                  {" — "}
+                  {adviceResult.profiles[0].core}
+                </p>
+              )}
             </CardContent>
           </Card>
+
+          {adviceResult && (
+            <Card className="border-border/60 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Jouw advies</CardTitle>
+                <CardDescription>
+                  {adviceResult.profiles.length > 0
+                    ? "Gericht op jouw signaalprofiel — ter bespreking met je begeleider."
+                    : adviceResult.hardBlocks.length > 0
+                      ? "Gebaseerd op aandachtsdomeinen in je quickscan."
+                      : "Geen hard aandachtsprofiel; wel richting op basis van je relatief laagste scores."}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {adviceResult.advice.map((line) => (
+                    <li key={line} className="flex gap-2 text-sm leading-relaxed text-muted-foreground">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/70" />
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
+                {targetGroups[0] && (
+                  <p className="mt-5 rounded-xl bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      Kernvraag:{" "}
+                    </span>
+                    {targetGroups[0].coreQuestion}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="border-border/60 shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg">Domeinen</CardTitle>
               <CardDescription>
                 Drempel aandachtsgebied: gemiddelde ≤ {ATTENTION_THRESHOLD} (na
-                spiegeling van negatieve items).
+                spiegeling van negatieve items). Relatief lager tot 3,2 krijgt
+                ook een zacht advies.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
@@ -684,26 +732,36 @@ export function LoopbaanscanClient() {
             <CardHeader>
               <CardTitle className="text-lg">Aanbevolen verdieping</CardTitle>
               <CardDescription>
-                Modules op basis van aandachtsdomeinen in de quickscan.
+                {recommendedModules.length > 0
+                  ? "Modules op basis van aandachtsdomeinen in de quickscan."
+                  : "Suggesties op basis van je relatief laagste domeinen."}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {recommendedModules.length === 0 ? (
+              {suggestedModules.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Geen sterke aandachtsdomeinen. Modules kunnen desgewenst op
-                  initiatief van de begeleider worden ingezet.
+                  Geen modules om te starten. Kies desgewenst handmatig een
+                  verdieping hieronder.
                 </p>
               ) : (
-                recommendedModules.map((id) => {
+                suggestedModules.map((id) => {
                   const mod = getModuleById(id)!;
                   const done = isModuleComplete(id, moduleAnswers[id] ?? {});
+                  const isHard = recommendedModules.includes(id);
                   return (
                     <div
                       key={id}
                       className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 px-4 py-3"
                     >
                       <div>
-                        <p className="text-sm font-medium">{mod.title}</p>
+                        <p className="text-sm font-medium">
+                          {mod.title}
+                          {!isHard && (
+                            <span className="ml-2 text-[11px] font-normal text-muted-foreground">
+                              suggestie
+                            </span>
+                          )}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {mod.description}
                         </p>
@@ -729,7 +787,7 @@ export function LoopbaanscanClient() {
               <Separator className="my-2" />
               <div className="flex flex-wrap gap-2">
                 {DEEPENING_MODULES.filter(
-                  (m) => !recommendedModules.includes(m.id),
+                  (m) => !suggestedModules.includes(m.id),
                 ).map((m) => (
                   <Button
                     key={m.id}

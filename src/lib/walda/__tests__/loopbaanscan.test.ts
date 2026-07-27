@@ -3,6 +3,7 @@ import {
   ATTENTION_THRESHOLD,
   allOpenAnswered,
   allQuickscanAnswered,
+  buildClientAdviceResult,
   buildProfileNarrative,
   calculateAllBlockScores,
   calculateBlockScore,
@@ -12,6 +13,8 @@ import {
   getAttentionBlocks,
   getRecommendedModules,
   getSignalLevel,
+  getSoftAttentionBlocks,
+  getSuggestedModules,
   inferDominantTargetGroups,
   matchSignalProfiles,
   mirrorScore,
@@ -41,7 +44,6 @@ describe("loopbaanscan scoring", () => {
   });
 
   it("calculates block averages with reverse items", () => {
-    // A1=5, A2=5 (reverse→1), A3=5, A4=5 (reverse→1), A5=5 → (5+1+5+1+5)/5 = 3.4
     const answers = fillAnswers({ A1: 5, A2: 5, A3: 5, A4: 5, A5: 5 });
     expect(calculateBlockScore("A", answers)).toBe(3.4);
   });
@@ -51,7 +53,6 @@ describe("loopbaanscan scoring", () => {
       { A1: 1, A2: 1, A3: 1, A4: 1, A5: 1 },
       4,
     );
-    // A2 reverse: 1→5, A4 reverse: 1→5 → (1+5+1+5+1)/5 = 2.6
     const score = calculateBlockScore("A", low)!;
     expect(score).toBe(2.6);
     expect(score).toBeLessThanOrEqual(ATTENTION_THRESHOLD);
@@ -148,6 +149,61 @@ describe("loopbaanscan scoring", () => {
     expect(narrative).toContain("energie");
   });
 
+  it("returns client advice with profile for low A scores", () => {
+    const answers = fillAnswers({
+      A1: 1,
+      A2: 1,
+      A3: 1,
+      A4: 1,
+      A5: 1,
+    });
+    const scores = calculateAllBlockScores(answers)!;
+    const result = buildClientAdviceResult(scores, answers);
+    expect(result.profiles.some((p) => p.id === "leegte")).toBe(true);
+    expect(result.advice.length).toBeGreaterThan(0);
+    expect(result.targetGroups.length).toBeGreaterThan(0);
+    expect(result.dominantLabel).toMatch(/Leegte|Functionerende/i);
+  });
+
+  it("still gives soft profile and advice when scores are healthy", () => {
+    // Positieve items hoog, negatieve items laag = gezond patroon
+    const answers = fillAnswers({}, 5);
+    for (const block of QUICKSCAN_BLOCKS) {
+      for (const q of block.questions) {
+        if (q.reverse) answers[q.id] = 1;
+      }
+    }
+    const scores = calculateAllBlockScores(answers)!;
+    expect(getAttentionBlocks(scores)).toEqual([]);
+    const soft = getSoftAttentionBlocks(scores);
+    expect(soft.length).toBeGreaterThan(0);
+
+    const result = buildClientAdviceResult(scores, answers);
+    expect(result.advice.length).toBeGreaterThan(0);
+    expect(result.targetGroups.length).toBeGreaterThan(0);
+    expect(getSuggestedModules(scores).length).toBeGreaterThan(0);
+  });
+
+  it("gives hard profile and advice for low involvement scores", () => {
+    const answers = fillAnswers({
+      A1: 1,
+      A2: 5,
+      A3: 1,
+      A4: 5,
+      A5: 1,
+    });
+    for (const block of QUICKSCAN_BLOCKS) {
+      for (const q of block.questions) {
+        if (q.reverse && !q.id.startsWith("A")) answers[q.id] = 1;
+      }
+    }
+    const scores = calculateAllBlockScores(answers)!;
+    const result = buildClientAdviceResult(scores, answers);
+    expect(result.hardBlocks).toContain("A");
+    expect(result.profiles.some((p) => p.id === "leegte")).toBe(true);
+    expect(result.advice[0]).toMatch(/betrokkenheid|functioneert/i);
+  });
+
   it("validates completeness helpers", () => {
     const partial = { A1: 3 };
     expect(allQuickscanAnswered(partial)).toBe(false);
@@ -169,8 +225,8 @@ describe("loopbaanscan scoring", () => {
     for (let i = 1; i <= 12; i++) {
       answers[`V${i}`] = 4;
     }
-    answers.V3 = 2; // reverse → 4
-    answers.V12 = 2; // reverse → 4
+    answers.V3 = 2;
+    answers.V12 = 2;
     const scores = calculateProgressBlockScores(answers)!;
     expect(scores.A).toBe(4);
     expect(getAttentionBlocks(scores)).toEqual([]);

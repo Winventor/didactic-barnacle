@@ -6,6 +6,8 @@ export const LOOPBAANSCAN_BANNER = {
 };
 
 export const ATTENTION_THRESHOLD = 2.8;
+/** Soft threshold: relatief lager, wel advies maar nog geen harde module-trigger */
+export const SOFT_ATTENTION_THRESHOLD = 3.2;
 export const MEANINGFUL_CHANGE = 0.5;
 export const LIKERT_MIN = 1;
 export const LIKERT_MAX = 5;
@@ -102,6 +104,8 @@ export interface SignalProfile {
   core: string;
   targetGroupIds: number[];
   match: (scores: Record<BlockId, number>, answers: Record<string, number>) => boolean;
+  /** Advies voor de cliënt (zichtbaar op de uitslag) */
+  clientAdvice: string[];
   interventions: string[];
 }
 
@@ -901,6 +905,12 @@ export const SIGNAL_PROFILES: SignalProfile[] = [
     core: "Betekenisverlies zonder overbelasting. Functionerende leegloper.",
     targetGroupIds: [1, 2],
     match: (scores) => scores.A <= ATTENTION_THRESHOLD && scores.D > ATTENTION_THRESHOLD,
+    clientAdvice: [
+      "Je functioneert waarschijnlijk goed, maar voelt weinig echte betrokkenheid. Dat is een serieus signaal, geen luxeprobleem.",
+      "Onderzoek wanneer je werk wél energie geeft: welke taken, mensen of momenten zijn dat?",
+      "Stel de vraag: wat zou ik willen dat mijn werk betekent — niet alleen wat ik goed kan?",
+      "Begin met kleine experimenten in je huidige rol voordat je grote loopbaanstappen overweegt.",
+    ],
     interventions: [
       "Normaliseer het gevoel. Benoem dat functioneren en leven niet hetzelfde zijn.",
       "Verken de tijdlijn: wanneer begon het, wat veranderde er?",
@@ -918,6 +928,12 @@ export const SIGNAL_PROFILES: SignalProfile[] = [
     targetGroupIds: [4],
     match: (scores, answers) =>
       scores.D <= ATTENTION_THRESHOLD && (answers.F3 ?? 1) >= 4,
+    clientAdvice: [
+      "Herstel heeft nu voorrang op een loopbaankeuze. Uitputting maakt het moeilijk om helder te weten wat je wilt.",
+      "Kijk eerst naar grenzen: waar zeg je te laat of te weinig 'nee'?",
+      "Vraag je af: als ik uitgerust was, zou ik dan nog steeds weg willen?",
+      "Werk samen met je begeleider aan een herstelplan voordat je grote stappen zet.",
+    ],
     interventions: [
       "Prioriteit: herstelplan voor overbelasting, niet direct loopbaankeuze.",
       "Grensdynamiek onderzoeken: welk patroon zorgt voor de overbelasting?",
@@ -933,6 +949,12 @@ export const SIGNAL_PROFILES: SignalProfile[] = [
     core: "De omgeving botst structureel met wie de persoon is.",
     targetGroupIds: [5],
     match: (scores) => scores.C <= ATTENTION_THRESHOLD,
+    clientAdvice: [
+      "Er lijkt een spanning te zitten tussen wat jij belangrijk vindt en hoe er op het werk wordt gewerkt.",
+      "Maak expliciet welke waarden botsen — dat geeft richting aan wat er moet veranderen.",
+      "Onderscheid: is het de organisatie, de sector, of vooral jouw specifieke functie?",
+      "Verken of aanpassing binnen je huidige context nog mogelijk is, of dat een andere omgeving nodig is.",
+    ],
     interventions: [
       "Maak het conflict expliciet: welke waarden worden geschonden?",
       "Onderscheid: is dit de organisatie, de sector, of de specifieke functie?",
@@ -949,6 +971,12 @@ export const SIGNAL_PROFILES: SignalProfile[] = [
     targetGroupIds: [3],
     match: (_scores, answers) =>
       (answers.F2 ?? 1) >= 4 && (answers.F5 ?? 5) <= 2,
+    clientAdvice: [
+      "Je zoekt waarschijnlijk meer zekerheid dan er bij een loopbaanstap beschikbaar is.",
+      "Onderscheid: mis je informatie, of houd je vooral spanning rond 'de verkeerde keuze'?",
+      "Kies niet de perfecte stap, maar de volgende passende, omkeerbare stap.",
+      "Formuleer één klein experiment dat je binnen twee weken kunt doen.",
+    ],
     interventions: [
       'Benoem het patroon zonder oordeel: "Je bent al een tijdje aan het zoeken. Wat houdt je tegen?"',
       "Onderscheid informatietekort van keuzeangst.",
@@ -965,6 +993,12 @@ export const SIGNAL_PROFILES: SignalProfile[] = [
     core: "Keuzes worden gemaakt op basis van wat anderen verwachten. Patroon keert terug.",
     targetGroupIds: [7],
     match: (_scores, answers) => (answers.F4 ?? 1) >= 4,
+    clientAdvice: [
+      "Je keuzes lijken deels te worden gestuurd door wat anderen van je verwachten.",
+      "Onderzoek je loopbaangeschiedenis: welke stappen waren echt van jou?",
+      "Oefen met kleine zelfgestuurde keuzes — dat bouwt vertrouwen in je eigen oordeel.",
+      "Stel de vraag: wat wil ík, versus wat behoor ik te willen?",
+    ],
     interventions: [
       "Tijdlijn van loopbaan in kaart brengen: welke keuzes zijn gemaakt, en waarop gebaseerd?",
       "Patronen benoemen zonder veroordelen.",
@@ -981,6 +1015,12 @@ export const SIGNAL_PROFILES: SignalProfile[] = [
     targetGroupIds: [6],
     match: (scores, answers) =>
       scores.B <= ATTENTION_THRESHOLD && (answers.B1 ?? 5) <= 2,
+    clientAdvice: [
+      "Wat ooit paste, past nu minder — jij of je werk is veranderd.",
+      "Erken wat je mist van vroeger; dat is geen zwakte, maar informatie.",
+      "Breng in kaart wat nu belangrijk is: rust, betekenis, balans, groei?",
+      "Zoek niet meteen de perfecte eindbaan, maar een passende volgende fase.",
+    ],
     interventions: [
       "Verken de verandering: is de persoon veranderd, het werk, of allebei?",
       "Rouw erkennen: wat is er verloren gegaan? Wat mist iemand van vroeger?",
@@ -991,6 +1031,48 @@ export const SIGNAL_PROFILES: SignalProfile[] = [
     ],
   },
 ];
+
+export const BLOCK_CLIENT_ADVICE: Record<BlockId, string[]> = {
+  A: [
+    "Je betrokkenheid en energie verdienen aandacht: werk kan goed gaan en toch leeg voelen.",
+    "Zoek naar momenten waarop je wél opgaat in je werk — daar zit vaak een spoor van betekenis.",
+  ],
+  B: [
+    "De aansluiting tussen wie je nu bent en je functie lijkt onder druk te staan.",
+    "Vraag je af: past dit werk bij mijn huidige behoeften, of vooral bij wie ik was?",
+  ],
+  C: [
+    "Er speelt mogelijk een waardenconflict met je werkomgeving.",
+    "Benoeem wat voor jou niet-onderhandelbaar is in hoe je wilt werken.",
+  ],
+  D: [
+    "Belasting en herstel vragen eerst aandacht voordat je grote loopbaankeuzes maakt.",
+    "Herstel is geen uitstel van de vraag — het is een voorwaarde om de vraag goed te kunnen stellen.",
+  ],
+  E: [
+    "Autonomie of verbondenheid in je omgeving lijkt niet goed te kloppen.",
+    "Onderscheid: wil je ander werk, of vooral een andere manier van samenwerken?",
+  ],
+  F: [
+    "Richting en keuzebereidheid verdienen aandacht: je weet mogelijk beter wat je niet wilt dan wat je wél wilt.",
+    "Zet in op één kleine, omkeerbare stap in plaats van de perfecte keuze.",
+  ],
+};
+
+export const STABLE_CLIENT_ADVICE: string[] = [
+  "Je scores laten geen sterk aandachtsgebied zien. Dat betekent niet dat je vraag onbelangrijk is.",
+  "Gebruik de open antwoorden en het gesprek met je begeleider om te verdiepen wat je toch hierheen bracht.",
+  "Kijk naar de relatief laagste domeinen hieronder — daar zit vaak alsnog een bruikbaar aanknopingspunt.",
+];
+
+export interface ClientAdviceResult {
+  profiles: SignalProfile[];
+  targetGroups: TargetGroup[];
+  advice: string[];
+  softBlocks: BlockId[];
+  hardBlocks: BlockId[];
+  dominantLabel: string | null;
+}
 
 // ——— Scoring helpers ———
 
@@ -1054,6 +1136,27 @@ export function getAttentionBlocks(
   );
 }
 
+/** Domeinen ≤ soft threshold, of de 1–2 relatief laagste als alles boven de harde drempel ligt */
+export function getSoftAttentionBlocks(
+  scores: Record<BlockId, number>,
+): BlockId[] {
+  const soft = (Object.keys(scores) as BlockId[]).filter(
+    (id) => scores[id] <= SOFT_ATTENTION_THRESHOLD,
+  );
+  if (soft.length > 0) return soft;
+
+  const ranked = (Object.keys(scores) as BlockId[])
+    .slice()
+    .sort((a, b) => scores[a] - scores[b]);
+  const lowest = ranked[0];
+  const second = ranked[1];
+  const result: BlockId[] = [lowest];
+  if (second && scores[second] - scores[lowest] <= 0.4) {
+    result.push(second);
+  }
+  return result;
+}
+
 export function getRecommendedModules(
   scores: Record<BlockId, number>,
 ): ModuleId[] {
@@ -1066,9 +1169,23 @@ export function getRecommendedModules(
     }
   }
 
-  // Extra: F4 hoog → M2 (Identiteit & Verwachtingen)
-  // handled via F in M2 triggerBlocks already
+  return modules;
+}
 
+/** Modules ook bij soft aandacht — als suggestie, niet als harde trigger */
+export function getSuggestedModules(
+  scores: Record<BlockId, number>,
+): ModuleId[] {
+  const hard = getRecommendedModules(scores);
+  if (hard.length > 0) return hard;
+
+  const soft = new Set(getSoftAttentionBlocks(scores));
+  const modules: ModuleId[] = [];
+  for (const mod of DEEPENING_MODULES) {
+    if (mod.triggerBlocks.some((b) => soft.has(b))) {
+      modules.push(mod.id);
+    }
+  }
   return modules;
 }
 
@@ -1077,6 +1194,25 @@ export function matchSignalProfiles(
   answers: Record<string, number>,
 ): SignalProfile[] {
   return SIGNAL_PROFILES.filter((profile) => profile.match(scores, answers));
+}
+
+function targetGroupIdsForBlocks(blocks: BlockId[]): number[] {
+  const ids = new Set<number>();
+  for (const block of blocks) {
+    if (block === "A") ids.add(1);
+    if (block === "B") ids.add(6);
+    if (block === "C") ids.add(5);
+    if (block === "D") ids.add(4);
+    if (block === "E") {
+      ids.add(1);
+      ids.add(6);
+    }
+    if (block === "F") {
+      ids.add(3);
+      ids.add(7);
+    }
+  }
+  return [...ids];
 }
 
 export function inferDominantTargetGroups(
@@ -1090,17 +1226,70 @@ export function inferDominantTargetGroups(
     for (const id of profile.targetGroupIds) ids.add(id);
   }
 
-  // Fallback heuristics when no named profile matches but blocks signal
+  // Fallback: harde aandachtsdomeinen
   if (ids.size === 0) {
-    if (scores.A <= ATTENTION_THRESHOLD) ids.add(1);
-    if (scores.B <= ATTENTION_THRESHOLD) ids.add(6);
-    if (scores.C <= ATTENTION_THRESHOLD) ids.add(5);
-    if (scores.D <= ATTENTION_THRESHOLD) ids.add(4);
-    if (scores.E <= ATTENTION_THRESHOLD) ids.add(1);
-    if (scores.F <= ATTENTION_THRESHOLD) ids.add(3);
+    for (const id of targetGroupIdsForBlocks(getAttentionBlocks(scores))) {
+      ids.add(id);
+    }
+  }
+
+  // Soft fallback: relatief laagste domeinen → toch een herkenbaar profiel
+  if (ids.size === 0) {
+    for (const id of targetGroupIdsForBlocks(getSoftAttentionBlocks(scores))) {
+      ids.add(id);
+    }
   }
 
   return TARGET_GROUPS.filter((g) => ids.has(g.id));
+}
+
+export function buildClientAdviceResult(
+  scores: Record<BlockId, number>,
+  answers: Record<string, number>,
+): ClientAdviceResult {
+  const profiles = matchSignalProfiles(scores, answers);
+  const hardBlocks = getAttentionBlocks(scores);
+  const softBlocks = getSoftAttentionBlocks(scores);
+  const targetGroups = inferDominantTargetGroups(scores, answers);
+
+  const advice: string[] = [];
+
+  if (profiles.length > 0) {
+    for (const profile of profiles) {
+      for (const line of profile.clientAdvice) {
+        if (!advice.includes(line)) advice.push(line);
+      }
+    }
+  } else if (hardBlocks.length > 0) {
+    for (const block of hardBlocks.slice(0, 2)) {
+      for (const line of BLOCK_CLIENT_ADVICE[block]) {
+        if (!advice.includes(line)) advice.push(line);
+      }
+    }
+  } else {
+    for (const line of STABLE_CLIENT_ADVICE) advice.push(line);
+    for (const block of softBlocks.slice(0, 2)) {
+      for (const line of BLOCK_CLIENT_ADVICE[block]) {
+        if (!advice.includes(line)) advice.push(line);
+      }
+    }
+  }
+
+  const dominantLabel =
+    profiles[0]?.name ??
+    targetGroups[0]?.name ??
+    (softBlocks[0]
+      ? `Relatief: ${QUICKSCAN_BLOCKS.find((b) => b.id === softBlocks[0])?.title ?? softBlocks[0]}`
+      : null);
+
+  return {
+    profiles,
+    targetGroups,
+    advice: advice.slice(0, 6),
+    softBlocks,
+    hardBlocks,
+    dominantLabel,
+  };
 }
 
 export function buildProfileNarrative(
@@ -1108,26 +1297,38 @@ export function buildProfileNarrative(
   answers: Record<string, number>,
   openAnswers: Record<string, string>,
 ): string {
-  const groups = inferDominantTargetGroups(scores, answers);
-  const attention = getAttentionBlocks(scores);
+  const adviceResult = buildClientAdviceResult(scores, answers);
+  const groups = adviceResult.targetGroups;
+  const attention = adviceResult.hardBlocks;
+  const soft = adviceResult.softBlocks;
   const dominant = groups[0];
+  const profile = adviceResult.profiles[0];
 
   const themeParts: string[] = [];
-  if (attention.includes("A")) themeParts.push("betekenisverlies of lage betrokkenheid");
-  if (attention.includes("B")) themeParts.push("passendheid van het werk");
-  if (attention.includes("C")) themeParts.push("waardenconflict met de organisatie");
-  if (attention.includes("D")) themeParts.push("overbelasting en herstel");
-  if (attention.includes("E")) themeParts.push("autonomie of omgevingsfit");
-  if (attention.includes("F")) themeParts.push("keuzeparalysis of loopbaanbeweging");
+  const themeSource = attention.length > 0 ? attention : soft;
+  if (themeSource.includes("A")) themeParts.push("betekenisverlies of lage betrokkenheid");
+  if (themeSource.includes("B")) themeParts.push("passendheid van het werk");
+  if (themeSource.includes("C")) themeParts.push("waardenconflict met de organisatie");
+  if (themeSource.includes("D")) themeParts.push("overbelasting en herstel");
+  if (themeSource.includes("E")) themeParts.push("autonomie of omgevingsfit");
+  if (themeSource.includes("F")) themeParts.push("keuzeparalysis of loopbaanbeweging");
+
+  const hasHardSignal = attention.length > 0 || adviceResult.profiles.length > 0;
 
   const theme =
     themeParts.length > 0
       ? themeParts.slice(0, 2).join(" en ")
       : "een relatief stabiel beeld zonder sterke aandachtsgebieden";
 
-  const groupLine = dominant
-    ? ` Jouw hulpvraag sluit het meest aan bij het profiel "${dominant.name}": ${dominant.coreQuestion}`
-    : "";
+  const strength = hasHardSignal
+    ? "vooral te maken met"
+    : "mogelijk vooral te maken met";
+
+  const groupLine = profile
+    ? ` Dit past bij het signaalprofiel "${profile.name}": ${profile.core}`
+    : dominant
+      ? ` Jouw hulpvraag sluit het meest aan bij het profiel "${dominant.name}": ${dominant.coreQuestion}`
+      : "";
 
   const duration = openAnswers.Q3
     ? ` Dit speelt volgens jou al: ${OPEN_QUESTIONS.find((q) => q.id === "Q3")?.options?.find((o) => o.id === openAnswers.Q3)?.label ?? openAnswers.Q3}.`
@@ -1137,7 +1338,7 @@ export function buildProfileNarrative(
     ? ` Wat je het meest mist: "${openAnswers.Q2.trim()}".`
     : "";
 
-  return `Jouw hulpvraag heeft bij de start van het traject vooral te maken met ${theme}.${groupLine}${duration}${miss}`;
+  return `Jouw hulpvraag heeft bij de start van het traject ${strength} ${theme}.${groupLine}${duration}${miss}`;
 }
 
 export function allQuickscanAnswered(
