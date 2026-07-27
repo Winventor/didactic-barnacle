@@ -11,8 +11,10 @@
 | Beleidsdashboard | `/` |
 | Juridisch Onderzoeksplatform | `/juridisch/` |
 | TES Labour Intelligence | `/tes/` |
+| Walda Loopbaanscan | `/walda/loopbaanscan/` |
 
-Directe link juridisch: https://winventor.github.io/didactic-barnacle/juridisch/
+Directe link juridisch: https://winventor.github.io/didactic-barnacle/juridisch/  
+Directe link loopbaanscan: https://winventor.github.io/didactic-barnacle/walda/loopbaanscan/
 
 De site wordt automatisch gebouwd en gepubliceerd via GitHub Actions (`Deploy naar GitHub Pages`).
 

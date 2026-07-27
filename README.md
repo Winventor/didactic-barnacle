@@ -11,6 +11,7 @@ Moderne, responsieve webapplicatie waarmee openbare beleidsdocumenten uit [OpenR
 | Beleidsdashboard | https://winventor.github.io/didactic-barnacle/ |
 | Juridisch Onderzoeksplatform | https://winventor.github.io/didactic-barnacle/juridisch/ |
 | TES Labour Intelligence | https://winventor.github.io/didactic-barnacle/tes/ |
+| Walda Loopbaanscan | https://winventor.github.io/didactic-barnacle/walda/loopbaanscan/ |
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Winventor/didactic-barnacle)
 
