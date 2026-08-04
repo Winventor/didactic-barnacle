@@ -18,6 +18,16 @@ Directe link juridisch: https://winventor.github.io/didactic-barnacle/juridisch/
 Directe link loopbaanscan: https://winventor.github.io/didactic-barnacle/walda/loopbaanscan/  
 Directe link Windkracht Vier: https://winventor.github.io/didactic-barnacle/windkracht-vier/
 
+### Foto’s Windkracht Vier (vanaf iOS)
+
+Foto’s in de Cursor iOS-chat landen **niet** als bestanden in de repo. Upload ze zo:
+
+1. https://github.com/Winventor/didactic-barnacle/upload/master/public/windkracht-vier/fotos
+2. Commit naar `master`
+3. Vraag de Cloud Agent de collage bij te werken (`src/lib/windkracht-vier/photos.ts`)
+
+Zie ook [`public/windkracht-vier/fotos/README.md`](./public/windkracht-vier/fotos/README.md).
+
 De site wordt automatisch gebouwd en gepubliceerd via GitHub Actions (`Deploy naar GitHub Pages`).
 
 **Static export:** het juridische platform draait client-side op GitHub Pages (geen server-API). Officiële bronnen openen via permanente links; live API-calls kunnen door CORS beperkt zijn.
