@@ -6,7 +6,17 @@ export type BoatPhoto = {
   span?: "wide" | "tall" | "normal";
 };
 
-/** Collagefoto's — vervang bestanden in public/windkracht-vier/fotos/ */
+/**
+ * Collagefoto's voor /windkracht-vier/.
+ *
+ * Huidige `wk4-*.jpg` bestanden zijn tijdelijke sfeerbeelden.
+ * Echte foto's: upload naar public/windkracht-vier/fotos/ (zie README daar),
+ * verwijder of overschrijf de wk4-* bestanden, en werk deze lijst bij
+ * (id, src, alt, caption, optioneel span: "wide" | "tall").
+ *
+ * Vanaf iOS: gebruik GitHub-upload, niet Cursor chat-attachments.
+ * https://github.com/Winventor/didactic-barnacle/upload/master/public/windkracht-vier/fotos
+ */
 export const BOAT_PHOTOS: BoatPhoto[] = [
   {
     id: "zeilend",
