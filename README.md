@@ -12,6 +12,7 @@ Moderne, responsieve webapplicatie waarmee openbare beleidsdocumenten uit [OpenR
 | Juridisch Onderzoeksplatform | https://winventor.github.io/didactic-barnacle/juridisch/ |
 | TES Labour Intelligence | https://winventor.github.io/didactic-barnacle/tes/ |
 | Walda Loopbaanscan | https://winventor.github.io/didactic-barnacle/walda/loopbaanscan/ |
+| Windkracht Vier | https://winventor.github.io/didactic-barnacle/windkracht-vier/ |
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Winventor/didactic-barnacle)
 
@@ -51,6 +52,7 @@ In dezelfde repository staat ook het **TES Labour Intelligence Platform** — ee
 | TES Labour Intelligence | `/tes` | Arbeidsmarktprognoses en TES-analyse |
 | Juridisch Onderzoeksplatform | `/juridisch` | NL/EU juridisch onderzoek en claimgeneratie |
 | Walda Loopbaanscan | `/walda/loopbaanscan` | Drielaags loopbaaninstrument (quickscan, verdieping, voortgang) |
+| Windkracht Vier | `/windkracht-vier` | Technisch dossier + verkoopinformatie klassieke toerzeiler |
 
 **Juridisch platform starten:** [http://localhost:3000/juridisch](http://localhost:3000/juridisch)
 

@@ -1,0 +1,121 @@
+/* Windkracht Vier — maritiem dossier-thema */
+.windkracht-vier {
+  --wk-ink: #0c2230;
+  --wk-ink-soft: #243b48;
+  --wk-foam: #f7f3ec;
+  --wk-cream: #ebe3d4;
+  --wk-paper: #fffdf9;
+  --wk-water: #1f6b7a;
+  --wk-water-deep: #154e59;
+  --wk-sky: #b7d4dc;
+  --wk-wood: #7a5638;
+  --wk-line: color-mix(in srgb, var(--wk-ink) 14%, transparent);
+  --wk-shadow: color-mix(in srgb, var(--wk-ink) 18%, transparent);
+
+  color: var(--wk-ink);
+  background:
+    radial-gradient(1200px 500px at 10% -10%, color-mix(in srgb, var(--wk-sky) 55%, transparent), transparent 60%),
+    radial-gradient(900px 420px at 90% 0%, color-mix(in srgb, var(--wk-water) 12%, transparent), transparent 55%),
+    linear-gradient(180deg, var(--wk-foam) 0%, #f3eee5 40%, var(--wk-cream) 100%);
+  font-family: "Figtree", "Avenir Next", "Segoe UI", sans-serif;
+  min-height: 100vh;
+}
+
+.windkracht-vier .wk-display {
+  font-family: "Fraunces", "Iowan Old Style", "Palatino Linotype", serif;
+  font-optical-sizing: auto;
+}
+
+.windkracht-vier a {
+  color: var(--wk-water-deep);
+}
+
+@keyframes wk-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wk-drift {
+  from {
+    transform: translateX(-2%);
+  }
+  to {
+    transform: translateX(2%);
+  }
+}
+
+@keyframes wk-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.wk-rise {
+  animation: wk-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.wk-rise-delay-1 {
+  animation-delay: 0.12s;
+}
+
+.wk-rise-delay-2 {
+  animation-delay: 0.24s;
+}
+
+.wk-rise-delay-3 {
+  animation-delay: 0.36s;
+}
+
+.wk-hero-media {
+  animation: wk-fade-in 1.2s ease both;
+}
+
+.wk-hero-media img {
+  animation: wk-drift 18s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.wk-collage-item {
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease;
+}
+
+.wk-collage-item:hover,
+.wk-collage-item:focus-visible {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 18px 40px var(--wk-shadow);
+  outline: none;
+}
+
+.wk-tab[data-state="active"] {
+  background: var(--wk-paper);
+  color: var(--wk-ink);
+  box-shadow: 0 1px 0 var(--wk-line);
+}
+
+.wk-lightbox {
+  animation: wk-fade-in 0.2s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wk-rise,
+  .wk-hero-media,
+  .wk-hero-media img,
+  .wk-lightbox {
+    animation: none !important;
+  }
+
+  .wk-collage-item {
+    transition: none;
+  }
+}
