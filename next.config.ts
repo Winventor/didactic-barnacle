@@ -5,7 +5,12 @@ const isGithubPagesProject = process.env.GITHUB_PAGES === "true";
 const isStaticExport =
   process.env.STATIC_EXPORT === "true" || isGithubPagesProject;
 
+const pagesBasePath = isGithubPagesProject ? `/${repoName}` : "";
+
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_BASE_PATH: pagesBasePath,
+  },
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -25,8 +30,8 @@ const nextConfig: NextConfig = {
   // Alleen basePath voor github.io/<repo> — niet bij eigen domein of Render/Vercel
   ...(isGithubPagesProject
     ? {
-        basePath: `/${repoName}`,
-        assetPrefix: `/${repoName}/`,
+        basePath: pagesBasePath,
+        assetPrefix: `${pagesBasePath}/`,
       }
     : {}),
 };
