@@ -83,6 +83,7 @@ export interface LegalSearchResult {
   officialUrl: string;
   date?: string;
   relevanceScore?: number;
+  metadata?: Record<string, unknown>;
 }
 
 export interface LegalDocument {
@@ -360,6 +361,8 @@ export interface DefinitionResult {
   evidencePoints: string[];
   sources: LegalDocument[];
   jurisprudence: AnalyzedDecision[];
+  /** Beschrijving van wat er is doorzocht (metadata vs volledige tekst). */
+  searchScope?: string;
 }
 
 export interface DefinitionStatus {

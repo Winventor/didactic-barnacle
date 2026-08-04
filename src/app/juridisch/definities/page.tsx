@@ -44,7 +44,9 @@ export default function DefinitiesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Definitie zoeken</h1>
-        <p className="text-muted-foreground">Zoek juridische definities en rechtsbegrippen</p>
+        <p className="text-muted-foreground">
+          Doorzoekt metadata én volledige tekst van wetgeving (BWB) en jurisprudentie (Rechtspraak Open Data)
+        </p>
       </div>
 
       <div className="flex gap-2">
@@ -87,10 +89,20 @@ export default function DefinitiesPage() {
                 </div>
               </div>
 
+              {result.statutoryDefinition && (
+                <div>
+                  <h3 className="font-medium mb-1">Wettelijke passage</h3>
+                  <p className="text-sm bg-muted/50 rounded-md p-3">{result.statutoryDefinition}</p>
+                </div>
+              )}
+
               <div>
                 <h3 className="font-medium mb-1">Juridische betekenis</h3>
                 <p className="text-sm">{result.legalMeaning}</p>
                 <p className="text-xs text-muted-foreground mt-1">Rechtsgebied: {result.legalArea}</p>
+                {result.searchScope && (
+                  <p className="text-xs text-muted-foreground mt-2">{result.searchScope}</p>
+                )}
               </div>
 
               {result.mainRule && (
@@ -127,18 +139,61 @@ export default function DefinitiesPage() {
 
           {result.sources.length > 0 && (
             <div>
-              <h2 className="font-semibold mb-3">Bronnen</h2>
+              <h2 className="font-semibold mb-3">Wetgeving (volledige tekst)</h2>
               <div className="grid gap-3 md:grid-cols-2">
                 {result.sources.map((s) => (
-                  <SourceCard key={s.id} source={{
-                    title: s.title,
-                    snippet: s.fullText?.slice(0, 200),
-                    jurisdiction: s.jurisdiction,
-                    sourceType: s.sourceType,
-                    authorityLevel: s.authorityLevel,
-                    officialUrl: s.officialUrl,
-                    identifier: s.identifiers.bwbId ?? s.identifiers.ecli,
-                  }} />
+                  <div key={s.id} className="space-y-2">
+                    <SourceCard source={{
+                      title: s.title,
+                      snippet: s.fragments?.[0]?.text?.slice(0, 220) ?? s.fullText?.slice(0, 200),
+                      jurisdiction: s.jurisdiction,
+                      sourceType: s.sourceType,
+                      authorityLevel: s.authorityLevel,
+                      officialUrl: s.officialUrl,
+                      identifier: s.identifiers.bwbId ?? s.identifiers.ecli,
+                    }} />
+                    {s.fragments && s.fragments.length > 1 && (
+                      <ul className="text-xs text-muted-foreground list-disc pl-5 space-y-1">
+                        {s.fragments.slice(1, 3).map((f) => (
+                          <li key={f.id}>{f.text.slice(0, 180)}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {result.jurisprudence.length > 0 && (
+            <div>
+              <h2 className="font-semibold mb-3">Jurisprudentie</h2>
+              <div className="grid gap-3">
+                {result.jurisprudence.map((j) => (
+                  <Card key={j.ecli ?? j.url}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">
+                        <a href={j.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                          {j.ecli ?? j.institution}
+                        </a>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <p className="text-xs text-muted-foreground">
+                        {j.institution}
+                        {j.date ? ` · ${j.date}` : ""}
+                        {j.isLeadingCase ? " · Leidende jurisprudentie" : ""}
+                      </p>
+                      <p>{j.coreRule}</p>
+                      {j.relevantConsiderations.length > 0 && (
+                        <ul className="text-xs text-muted-foreground list-disc pl-5">
+                          {j.relevantConsiderations.map((c, i) => (
+                            <li key={i}>{c.slice(0, 200)}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             </div>
