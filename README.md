@@ -14,6 +14,8 @@ Moderne, responsieve webapplicatie waarmee openbare beleidsdocumenten uit [OpenR
 | Walda Loopbaanscan | https://winventor.github.io/didactic-barnacle/walda/loopbaanscan/ |
 | Windkracht Vier | https://winventor.github.io/didactic-barnacle/windkracht-vier/ |
 
+Foto’s vanaf iPhone: upload via GitHub naar [`public/windkracht-vier/fotos/`](public/windkracht-vier/fotos/README.md) (niet via Cursor-chat).
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Winventor/didactic-barnacle)
 
 Klik op de knop hierboven voor een eigen URL op Render (bijv. `beleidsdashboard-openraadsinformatie.onrender.com`) — duurt ~2 minuten, geen domeinnaam nodig.
