@@ -150,12 +150,6 @@ export const BOAT_PHOTOS: BoatPhoto[] = [
     span: "wide",
   },
   {
-    id: "haven-2",
-    src: "/windkracht-vier/fotos/IMG_6100.jpg",
-    alt: "Windkracht Vier in de jachthaven",
-    caption: "Afmeren",
-  },
-  {
     id: "detail-6238",
     src: "/windkracht-vier/fotos/IMG_6238.jpg",
     alt: "Detailopname Windkracht Vier",
