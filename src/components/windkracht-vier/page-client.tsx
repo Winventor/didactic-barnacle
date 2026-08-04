@@ -87,7 +87,7 @@ function PhotoCollage({
             aria-label={`Open originele foto: ${photo.caption}`}
           >
             <Image
-              src={photo.src}
+              src={withBasePath(photo.src)}
               alt={photo.alt}
               fill
               sizes="(max-width: 768px) 50vw, 25vw"
@@ -181,7 +181,7 @@ function Lightbox({
       >
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-black/30 sm:aspect-[16/10]">
           <Image
-            src={photo.src}
+            src={withBasePath(photo.src)}
             alt={photo.alt}
             fill
             sizes="90vw"
@@ -232,7 +232,7 @@ export function WindkrachtVierClient() {
       <header className="relative isolate min-h-[100svh] overflow-hidden text-[var(--wk-foam)]">
         <div className="wk-hero-media absolute inset-0 -z-10">
           <Image
-            src={HERO_PHOTO.src}
+            src={withBasePath(HERO_PHOTO.src)}
             alt={HERO_PHOTO.alt}
             fill
             priority
