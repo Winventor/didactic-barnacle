@@ -365,7 +365,7 @@ export function WindkrachtVierClient() {
 
       <footer className="border-t border-[var(--wk-line)] px-6 py-10 text-center text-sm text-[var(--wk-ink-soft)]">
         <p className="wk-display text-lg text-[var(--wk-ink)]">Windkracht Vier</p>
-        <p className="mt-2">Giethoorn · Beulakerwijde · Beulackerhaven</p>
+        <p className="mt-2">Giethoorn · Beulakerwijde</p>
       </footer>
 
       {lightboxIndex !== null ? (
