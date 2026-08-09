@@ -2,8 +2,16 @@ import { Hono } from "hono";
 import { icsResponseHeaders, buildIcs } from "./ics.js";
 import { isValidationError, validateCoordinates } from "./validate.js";
 
+type Env = {
+  Bindings: {
+    ASSETS?: {
+      fetch: (request: Request) => Promise<Response>;
+    };
+  };
+};
+
 export function createApp() {
-  const app = new Hono();
+  const app = new Hono<Env>();
 
   app.get("/health", (c) =>
     c.json({ ok: true, service: "nachtcalendar", timezone: "Europe/Amsterdam" }),
@@ -49,6 +57,15 @@ export function createApp() {
     });
 
     return c.body(body, 200, icsResponseHeaders());
+  });
+
+  // On Cloudflare Workers, static assets (public/index.html) are served
+  // automatically. This route is a fallback when ASSETS is bound.
+  app.get("/", async (c) => {
+    if (c.env?.ASSETS) {
+      return c.env.ASSETS.fetch(c.req.raw);
+    }
+    return c.text("Open /index.html via the Node server (npm run dev).", 200);
   });
 
   return app;

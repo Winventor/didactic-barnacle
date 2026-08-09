@@ -13,7 +13,7 @@ Moderne, responsieve webapplicatie waarmee openbare beleidsdocumenten uit [OpenR
 | TES Labour Intelligence | https://winventor.github.io/didactic-barnacle/tes/ |
 | Walda Loopbaanscan | https://winventor.github.io/didactic-barnacle/walda/loopbaanscan/ |
 | Windkracht Vier | https://winventor.github.io/didactic-barnacle/windkracht-vier/ |
-| Schemer en Nacht | zie [`nachtcalendar/`](./nachtcalendar/) (dynamische ICS via Render/Node) |
+| Schemer en Nacht | zie [`nachtcalendar/`](./nachtcalendar/) (dynamische ICS via Cloudflare Workers) |
 
 Foto’s vanaf iPhone: upload via GitHub naar [`public/windkracht-vier/fotos/`](public/windkracht-vier/fotos/README.md) (niet via Cursor-chat).
 
@@ -58,7 +58,7 @@ In dezelfde repository staat ook het **TES Labour Intelligence Platform** — ee
 | Windkracht Vier | `/windkracht-vier` | Technisch dossier + verkoopinformatie klassieke toerzeiler |
 | Schemer en Nacht | `nachtcalendar/` | Dynamisch agenda-abonnement voor schemering en nacht |
 
-**Schemer en Nacht** is een aparte Node-app op Render (niet via GitHub Pages, geen Cloudflare): zie [nachtcalendar/README.md](nachtcalendar/README.md).
+**Schemer en Nacht** is een aparte Cloudflare Worker-app (niet via GitHub Pages): zie [nachtcalendar/README.md](nachtcalendar/README.md).
 
 ```bash
 cd nachtcalendar && npm install && npm run dev

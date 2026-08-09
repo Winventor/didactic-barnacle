@@ -9,13 +9,9 @@ Je abonneert je agenda-app op een URL met latitude/longitude. Bij ieder verzoek 
 - **start:** vandaag − 1 kalendermaand  
 - **einde:** vandaag + 1 kalenderjaar  
 
-Daardoor schuift het abonnement vanzelf mee. Geen accounts, geen database, geen cookies.
-
 Standaardlocatie (zonder parameters): **Hoogeveen** (`52.7286`, `6.4763`).
 
 ## Hoe werkt Schemer en Nacht?
-
-Per logische nacht (vanaf zonsondergang op dag X):
 
 | Fase | Start | Einde |
 |------|-------|-------|
@@ -23,32 +19,27 @@ Per logische nacht (vanaf zonsondergang op dag X):
 | **Nacht** | einde burgerlijke avondschemering | begin burgerlijke ochtendschemering (dag X+1) |
 | **Schemer** (ochtend) | begin burgerlijke ochtendschemering | zonsopkomst (dag X+1) |
 
-De drie perioden sluiten exact op elkaar aan.
+**Burgerlijke schemering:** het middelpunt van de zon staat **6° onder de horizon**.
 
-## Welke astronomische definities worden gebruikt?
+Tijdzone: **`Europe/Amsterdam`** (CET/CEST via Luxon). Astronomie: SunCalc.
 
-- **Zonsondergang / zonsopkomst:** officiële zonsondergang en -opkomst  
-- **Burgerlijke schemering:** het middelpunt van de zon staat **6° onder de horizon**  
-  - einde avondschemer = `civil dusk`  
-  - begin ochtendschemer = `civil dawn`  
+## Architectuur
 
-Berekeningen zijn locatie-afhankelijk via [SunCalc](https://github.com/mourner/suncalc). Tijden worden verwerkt in de IANA-tijdzone **`Europe/Amsterdam`** (CET/CEST via [Luxon](https://moment.github.io/luxon/)) — nooit als vaste UTC+1/UTC+2.
+GitHub Pages kan dit **niet** (alleen static bestanden).
 
-## Architectuurkeuze (waarom geen GitHub Pages?)
-
-GitHub Pages kan **geen** dynamische server-side `.ics`-feeds genereren op basis van queryparameters. Agenda-apps moeten een HTTP-URL ophalen die `text/calendar` teruggeeft.
-
-Deze app draait daarom als **Node.js-service op Render** — **zonder Cloudflare**. Zie [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+Hosting: **Cloudflare Workers** (aanbevolen). Lokaal draait dezelfde app als Node-server.
 
 ```
 Browser / agenda-app
         ↓
-  Node-server (Hono)
+  Cloudflare Worker
         ├── GET /              → instructiepagina + generator
         └── GET /calendar.ics  → dynamische ICS-feed
 ```
 
-## Hoe start ik het lokaal?
+Zie [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+
+## Lokaal starten
 
 ```bash
 cd nachtcalendar
@@ -56,184 +47,108 @@ npm install
 npm run dev
 ```
 
-Open:
+- Pagina: http://localhost:8787/  
+- ICS: http://localhost:8787/calendar.ics  
 
-- Instructiepagina: http://localhost:8787/  
-- ICS (Hoogeveen): http://localhost:8787/calendar.ics  
-- ICS (Amsterdam): http://localhost:8787/calendar.ics?lat=52.3676&lon=4.9041  
+Cloudflare lokaal simuleren: `npm run dev:cf`
 
-Productie-start (zelfde entrypoint):
-
-```bash
-npm start
-```
-
-## Hoe voer ik tests uit?
+## Tests
 
 ```bash
 cd nachtcalendar
 npm test
 ```
 
-Tests dekken o.a. winter/zomer, DST-overgangen, Nederlandse locaties, eventvolgorde, ICS-output, stabiele UIDs, URL-validatie en het voortschrijdende venster.
+## Deploy op Cloudflare (eenvoudig)
 
-## Hoe deploy ik het? (Render — geen Cloudflare)
+Na éénmalige secrets deployt GitHub Actions automatisch bij merge/push naar `master`.
 
-### Optie A — Render Blueprint (aanbevolen)
+### Stap 1 — Cloudflare-account
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Winventor/didactic-barnacle)
+1. Ga naar https://dash.cloudflare.com/ en log in (of maak een gratis account).
+2. Klik links op **Workers & Pages** (een keer openen is genoeg).
 
-Of alleen deze app (blueprint path `nachtcalendar/render.yaml`):
+### Stap 2 — Account ID kopiëren
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Winventor/didactic-barnacle)
+1. Op de Workers-overzichtspagina zie je rechts **Account ID**.
+2. Kopieer die waarde.
 
-1. Ga naar [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint**.
-2. Koppel deze GitHub-repository (branch `master` na merge van de PR).
-3. Gebruik `render.yaml` in de repo-root (bevat service `nachtcalendar`)  
-   of `nachtcalendar/render.yaml` voor alleen deze app.
-4. Deploy. Render geeft een URL zoals:
+### Stap 3 — API-token maken
 
-```text
-https://nachtcalendar.onrender.com
-```
+1. Ga naar https://dash.cloudflare.com/profile/api-tokens  
+2. **Create Token**  
+3. Kies template **Edit Cloudflare Workers** (of maak een token met rechten om Workers te bewerken).  
+4. Maak aan en **kopieer de token** (die zie je maar één keer).
 
-Abonnements-URL:
+### Stap 4 — Secrets in GitHub zetten
 
-```text
-https://nachtcalendar.onrender.com/calendar.ics
-https://nachtcalendar.onrender.com/calendar.ics?lat=52.7286&lon=6.4763
-```
+1. Open https://github.com/Winventor/didactic-barnacle/settings/secrets/actions  
+2. **New repository secret** → naam `CLOUDFLARE_API_TOKEN` → plak de token → Save  
+3. Nog een secret → naam `CLOUDFLARE_ACCOUNT_ID` → plak het Account ID → Save  
 
-### Optie B — Handmatige Web Service
+### Stap 5 — Deploy
 
-1. **New → Web Service**
-2. Root directory: `nachtcalendar`
-3. Build: `npm ci`
-4. Start: `npm start`
-5. Health check path: `/health`
+- Merge PR #20 naar `master`, **of**
+- Op GitHub: **Actions → Nachtcalendar → Run workflow**
 
-### GitHub Actions
-
-Workflow: [`.github/workflows/nachtcalendar.yml`](../.github/workflows/nachtcalendar.yml)
-
-Bij push/PR op `nachtcalendar/**`:
-
-1. `npm ci`
-2. `npm test`
-3. `npm run build` (typecheck)
-
-Deploy naar Render gebeurt via Render’s GitHub-koppeling (Blueprint/autodeploy), niet via Cloudflare.
-
-> **Let op (gratis plan):** Render kan free services slapen na inactiviteit. De eerste request na slaap duurt langer; daarna werkt het abonnement normaal.
-
-## Hoe maak ik een abonnement?
-
-1. Open de instructiepagina (`/`).  
-2. Kies een plaats of vul latitude/longitude in.  
-3. Klik **Maak agenda-abonnement**.  
-4. Kopieer de URL en voeg die toe als **abonnement** in je agenda-app.
-
-Voorbeeld na deploy:
+Na een geslaagde deploy staat je app op:
 
 ```text
-https://nachtcalendar.onrender.com/calendar.ics?lat=52.7286&lon=6.4763
+https://nachtcalendar.<jouw-subdomain>.workers.dev/
 ```
 
-Zonder parameters (Hoogeveen):
+Exacte URL staat in de GitHub Action-log bij de deploy-stap, en in het Cloudflare-dashboard onder **Workers & Pages → nachtcalendar**.
+
+### Abonnements-URL’s
 
 ```text
-https://nachtcalendar.onrender.com/calendar.ics
+https://nachtcalendar.<jouw-subdomain>.workers.dev/calendar.ics
+https://nachtcalendar.<jouw-subdomain>.workers.dev/calendar.ics?lat=52.7286&lon=6.4763
 ```
 
-## Hoe voeg ik het toe aan Apple Calendar?
+Handmatig deployen (met Wrangler ingelogd):
 
-1. Mac: **Archief → Nieuw agenda-abonnement…**  
-   iOS: **Agenda’s → Voeg agenda-abonnement toe**  
-2. Plak de URL.  
-3. Bevestig. Laat het als abonnement staan.
+```bash
+cd nachtcalendar
+npm run deploy
+```
 
-## Hoe voeg ik het toe aan Google Calendar?
+## Alternatief: Render
 
-1. Open Google Calendar (desktop).  
-2. Links: **Andere agenda's → Via URL**.  
-3. Plak de URL → **Agenda toevoegen**.  
-4. Gebruik **niet** “Importeren” als je updates wilt.
+Render blijft beschikbaar via `render.yaml` / `nachtcalendar/render.yaml` als je Cloudflare even niet wilt gebruiken. Cloudflare is de primaire route.
 
-## Hoe voeg ik het toe aan Outlook?
+## Agenda toevoegen
 
-1. Voeg een **internetagenda** / agenda vanaf internet toe.  
-2. Plak de abonnements-URL.  
-3. Importeer het `.ics`-bestand niet als vaste lijst afspraken.
+**Belangrijk:** abonneren ≠ importeren.  
+Abonneren = periodiek opnieuw ophalen. Importeren = eenmalige kopie.
 
-## Hoe voeg ik het toe aan Nextcloud?
+### Apple Calendar
+Archief → Nieuw agenda-abonnement… (of op iPhone: Agenda’s → Voeg agenda-abonnement toe) → plak URL.
 
-1. Open Nextcloud Calendar.  
-2. Voeg een **nieuwe agenda / abonnement / externe kalender** toe.  
-3. Plak de URL zodat de feed periodiek wordt ververst.
+### Google Calendar
+Andere agenda's → Via URL → plak URL.
 
-### Importeren ≠ abonneren
+### Outlook
+Internetagenda / agenda vanaf internet toevoegen → plak URL.
 
-| | Importeren | Abonneren |
-|---|------------|-----------|
-| Resultaat | Eenmalige kopie | Periodiek opnieuw ophalen |
-| Updates | Geen | Ja, voortschrijdend venster |
+### Nextcloud
+Nieuwe agenda / abonnement / externe kalender → plak URL.
 
-## Hoe ziet de API/URL eruit?
-
-### Queryparameters (aanbevolen)
+## API
 
 ```http
 GET /calendar.ics
 GET /calendar.ics?lat=52.7286&lon=6.4763
-```
-
-| Parameter | Verplicht | Bereik | Opmerking |
-|-----------|-----------|--------|-----------|
-| `lat` | nee* | −90 … +90 | Decimaalpunt |
-| `lon` | nee* | −180 … +180 | Alias: `lng` |
-
-\* Beide weglaten → Hoogeveen. Eén van beide weglaten → HTTP 400.
-
-### Padvariant
-
-```http
 GET /calendar/52.7286/6.4763.ics
 ```
 
-### Response
+| Parameter | Verplicht | Bereik |
+|-----------|-----------|--------|
+| `lat` | nee* | −90 … +90 |
+| `lon` | nee* | −180 … +180 |
 
-- `Content-Type: text/calendar; charset=utf-8`  
-- `Cache-Control: public, max-age=21600` (6 uur)  
-- Geldige `VCALENDAR` / `VEVENT` met stabiele UIDs
+\* Beide weg = Hoogeveen. Eén van beide weg = HTTP 400.
 
-### Kalendernaam
+## Privacy
 
-- Bekende locatie: `X-WR-CALNAME:Schemer en Nacht - Hoogeveen`  
-- Alleen coördinaten: `X-WR-CALNAME:Schemer en Nacht`
-
-## Welke privacyaspecten zijn er?
-
-- Latitude/longitude worden alleen gebruikt om astronomische tijden te berekenen.  
-- Er is **geen** permanente opslag, database of gebruikersaccount.  
-- Geen analytics of tracking.  
-- De volledige configuratie zit in de deelbare URL.
-
-## Tech-stack
-
-- TypeScript + Hono op Node.js  
-- SunCalc (astronomie)  
-- Luxon (`Europe/Amsterdam`)  
-- Render (hosting)  
-- Vitest  
-
-## Directorystructuur
-
-```text
-nachtcalendar/
-├── public/index.html     # instructiepagina + generator
-├── src/                  # calendar endpoint + berekeningen
-├── tests/
-├── docs/ARCHITECTURE.md
-├── render.yaml
-└── package.json
-```
+Geen accounts, geen cookies, geen tracking, geen database. Coördinaten worden alleen gebruikt om tijden te berekenen.
