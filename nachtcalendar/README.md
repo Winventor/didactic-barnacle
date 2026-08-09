@@ -81,8 +81,14 @@ Tests dekken o.a. winter/zomer, DST-overgangen, Nederlandse locaties, eventvolgo
 
 ### Optie A — Render Blueprint (aanbevolen)
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Winventor/didactic-barnacle)
+
+Of alleen deze app (blueprint path `nachtcalendar/render.yaml`):
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Winventor/didactic-barnacle)
+
 1. Ga naar [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint**.
-2. Koppel deze GitHub-repository.
+2. Koppel deze GitHub-repository (branch `master` na merge van de PR).
 3. Gebruik `render.yaml` in de repo-root (bevat service `nachtcalendar`)  
    of `nachtcalendar/render.yaml` voor alleen deze app.
 4. Deploy. Render geeft een URL zoals:
