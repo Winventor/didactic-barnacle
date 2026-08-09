@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+/nachtcalendar/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -7,6 +8,9 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+
+/nachtcalendar/dist
+/nachtcalendar/.wrangler
 
 # testing
 /coverage
