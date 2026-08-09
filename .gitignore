@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+/nachtcalendar/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -7,6 +8,10 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+
+# Cloudflare Workers
+/nachtcalendar/.wrangler
+/nachtcalendar/dist
 
 # testing
 /coverage

@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Schemer en Nacht</title>
+    <meta
+      name="description"
+      content="Dynamisch agenda-abonnement voor schemering en nacht op jouw locatie."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Source+Sans+3:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #132033;
+        --muted: #4d6075;
+        --paper: #eef3f7;
+        --dusk: #1d3348;
+        --night: #071018;
+        --sky: #7eb0c9;
+        --moon: #d7e7f0;
+        --accent: #3f8f8a;
+        --accent-deep: #2f6f6b;
+        --line: rgba(19, 32, 51, 0.12);
+        --max: 720px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family: "Source Sans 3", sans-serif;
+        line-height: 1.55;
+        background:
+          radial-gradient(1000px 620px at 18% 8%, rgba(126, 176, 201, 0.28), transparent 58%),
+          radial-gradient(900px 520px at 88% 18%, rgba(63, 143, 138, 0.18), transparent 52%),
+          linear-gradient(180deg, #071018 0%, #132033 26%, #2a4a5f 48%, #8eacbc 68%, #eef3f7 86%);
+        min-height: 100vh;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.07;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        z-index: 0;
+      }
+
+      main {
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: clamp(1.5rem, 4vw, 3rem);
+        color: var(--moon);
+      }
+
+      .hero-inner {
+        max-width: 820px;
+        animation: rise 1s ease-out both;
+      }
+
+      .brand {
+        font-family: "Fraunces", serif;
+        font-size: clamp(3.2rem, 10vw, 6.4rem);
+        font-weight: 700;
+        line-height: 0.95;
+        letter-spacing: -0.03em;
+        margin: 0 0 1rem;
+        text-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+      }
+
+      .lede {
+        max-width: 34rem;
+        font-size: clamp(1.05rem, 2.4vw, 1.25rem);
+        color: rgba(215, 231, 240, 0.92);
+        margin: 0 0 1.75rem;
+      }
+
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .btn {
+        appearance: none;
+        border: 0;
+        border-radius: 999px;
+        padding: 0.85rem 1.35rem;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 160ms ease, background 160ms ease, color 160ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #f4fbfa;
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-deep);
+      }
+
+      .btn-ghost {
+        background: rgba(215, 231, 240, 0.1);
+        color: var(--moon);
+        border: 1px solid rgba(215, 231, 240, 0.28);
+      }
+
+      .panel {
+        background: rgba(238, 243, 247, 0.94);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(255, 255, 255, 0.4);
+        padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.25rem, 4vw, 2rem) 4rem;
+      }
+
+      .wrap {
+        max-width: var(--max);
+        margin: 0 auto;
+      }
+
+      section {
+        margin-bottom: 3rem;
+        animation: fade-up 0.8s ease both;
+      }
+
+      section:nth-of-type(2) {
+        animation-delay: 0.05s;
+      }
+
+      section:nth-of-type(3) {
+        animation-delay: 0.1s;
+      }
+
+      h2 {
+        font-family: "Fraunces", serif;
+        font-size: clamp(1.7rem, 4vw, 2.2rem);
+        margin: 0 0 0.6rem;
+        letter-spacing: -0.02em;
+      }
+
+      .section-lede {
+        color: var(--muted);
+        margin: 0 0 1.25rem;
+        max-width: 38rem;
+      }
+
+      .phases {
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .phase {
+        padding: 0.2rem 0 1rem;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .phase:last-child {
+        border-bottom: 0;
+      }
+
+      .phase h3 {
+        margin: 0 0 0.35rem;
+        font-size: 1.15rem;
+      }
+
+      .phase p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .flow {
+        font-family: "Fraunces", serif;
+        color: var(--accent-deep);
+        font-size: 1.05rem;
+      }
+
+      form {
+        display: grid;
+        gap: 0.9rem;
+      }
+
+      label {
+        display: grid;
+        gap: 0.35rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      input,
+      select {
+        width: 100%;
+        border: 1px solid rgba(26, 36, 51, 0.18);
+        border-radius: 12px;
+        padding: 0.8rem 0.95rem;
+        font: inherit;
+        background: #f8fbfd;
+        color: var(--ink);
+      }
+
+      input:focus,
+      select:focus {
+        outline: 2px solid rgba(63, 143, 138, 0.45);
+        outline-offset: 1px;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.9rem;
+      }
+
+      @media (max-width: 640px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .result {
+        margin-top: 1rem;
+        padding: 1rem 0 0;
+        border-top: 1px solid var(--line);
+        display: none;
+      }
+
+      .result.visible {
+        display: block;
+        animation: fade-up 0.45s ease both;
+      }
+
+      .url-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        align-items: stretch;
+        margin: 0.75rem 0 0.5rem;
+      }
+
+      .url-box code {
+        flex: 1 1 220px;
+        display: block;
+        padding: 0.85rem 1rem;
+        border-radius: 12px;
+        background: var(--night);
+        color: #f3efe6;
+        word-break: break-all;
+        font-size: 0.92rem;
+      }
+
+      .note {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .instructions details {
+        border-bottom: 1px solid var(--line);
+        padding: 0.85rem 0;
+      }
+
+      .instructions summary {
+        cursor: pointer;
+        font-weight: 700;
+        list-style: none;
+      }
+
+      .instructions summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .instructions summary::after {
+        content: "+";
+        float: right;
+        color: var(--accent-deep);
+        font-weight: 700;
+      }
+
+      .instructions details[open] summary::after {
+        content: "−";
+      }
+
+      .instructions ol {
+        margin: 0.6rem 0 0.2rem;
+        padding-left: 1.2rem;
+        color: var(--muted);
+      }
+
+      .callout {
+        margin: 1.25rem 0 0;
+        padding: 1rem 0;
+        border-top: 1px solid var(--line);
+        color: var(--dusk);
+      }
+
+      .callout strong {
+        color: var(--ink);
+      }
+
+      footer {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding-top: 1rem;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fade-up {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <div class="hero-inner">
+          <h1 class="brand">Schemer en Nacht</h1>
+          <p class="lede">
+            Een dynamisch agenda-abonnement met avondschemer, nacht en
+            ochtendschemer — berekend voor jouw locatie, elke dag opnieuw.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#generator">Maak agenda-abonnement</a>
+            <a class="btn btn-ghost" href="#uitleg">Hoe werkt het?</a>
+          </div>
+        </div>
+      </header>
+
+      <div class="panel">
+        <div class="wrap">
+          <section id="uitleg">
+            <h2>Hoe werkt Schemer en Nacht?</h2>
+            <p class="section-lede">
+              Burgerlijke schemering eindigt of begint wanneer het middelpunt van
+              de zon ongeveer 6° onder de horizon staat. Daartussen is het nacht.
+            </p>
+            <div class="phases">
+              <article class="phase">
+                <h3>Schemer avond</h3>
+                <p class="flow">zonsondergang → einde burgerlijke schemering</p>
+                <p>Van zonsondergang tot de zon 6° onder de horizon staat.</p>
+              </article>
+              <article class="phase">
+                <h3>Nacht</h3>
+                <p class="flow">
+                  einde burgerlijke avondschemering → begin burgerlijke
+                  ochtendschemering
+                </p>
+                <p>De donkere periode tussen avond- en ochtendschemer.</p>
+              </article>
+              <article class="phase">
+                <h3>Schemer ochtend</h3>
+                <p class="flow">begin burgerlijke schemering → zonsopkomst</p>
+                <p>Van 6° onder de horizon tot de zon weer opkomt.</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="generator">
+            <h2>Maak je abonnement</h2>
+            <p class="section-lede">
+              Latitude en longitude zijn leidend. Kies een plaats of vul
+              coördinaten in. Standaard staat Hoogeveen ingevuld.
+            </p>
+
+            <form id="calendar-form" novalidate>
+              <label>
+                Locatie
+                <select id="location-select" name="location">
+                  <option value="hoogeveen" selected>Hoogeveen</option>
+                  <option value="amsterdam">Amsterdam</option>
+                  <option value="maastricht">Maastricht</option>
+                  <option value="groningen">Groningen</option>
+                  <option value="vlissingen">Vlissingen</option>
+                  <option value="custom">Eigen coördinaten</option>
+                </select>
+              </label>
+
+              <div class="grid-2">
+                <label>
+                  Latitude
+                  <input
+                    id="lat"
+                    name="lat"
+                    type="text"
+                    inputmode="decimal"
+                    value="52.7286"
+                    required
+                    autocomplete="off"
+                  />
+                </label>
+                <label>
+                  Longitude
+                  <input
+                    id="lon"
+                    name="lon"
+                    type="text"
+                    inputmode="decimal"
+                    value="6.4763"
+                    required
+                    autocomplete="off"
+                  />
+                </label>
+              </div>
+
+              <button class="btn btn-primary" type="submit">
+                Maak agenda-abonnement
+              </button>
+            </form>
+
+            <div class="result" id="result" hidden>
+              <p><strong>Jouw agenda-URL</strong></p>
+              <div class="url-box">
+                <code id="calendar-url"></code>
+                <button class="btn btn-primary" type="button" id="copy-btn">
+                  Kopieer URL
+                </button>
+              </div>
+              <p class="note" id="copy-status" aria-live="polite"></p>
+              <p class="note">
+                Plak deze URL als <strong>abonnement</strong> in je agenda-app —
+                niet als eenmalige import.
+              </p>
+            </div>
+          </section>
+
+          <section class="instructions" id="apps">
+            <h2>Toevoegen in je agenda</h2>
+            <p class="section-lede">
+              Abonneren betekent: de kalender wordt periodiek opnieuw opgehaald.
+              Importeren maakt alleen een eenmalige kopie zonder updates.
+            </p>
+
+            <details>
+              <summary>Apple Calendar</summary>
+              <ol>
+                <li>Open de Kalender-app op Mac of iPhone.</li>
+                <li>
+                  Kies <em>Archief → Nieuw agenda-abonnement…</em> (Mac) of
+                  <em>Agenda’s → Voeg agenda-abonnement toe</em> (iOS).
+                </li>
+                <li>Plak de agenda-URL en bevestig.</li>
+                <li>Laat de agenda staan als abonnement, niet als lokale kopie.</li>
+              </ol>
+            </details>
+
+            <details>
+              <summary>Google Calendar</summary>
+              <ol>
+                <li>Open Google Calendar op de computer.</li>
+                <li>
+                  Links: <em>Andere agenda’s</em> → <em>Via URL</em>.
+                </li>
+                <li>Plak de agenda-URL en klik op <em>Agenda toevoegen</em>.</li>
+                <li>
+                  Gebruik niet “Importeren” als je automatische updates wilt.
+                </li>
+              </ol>
+            </details>
+
+            <details>
+              <summary>Outlook</summary>
+              <ol>
+                <li>Open Outlook op het web of desktop.</li>
+                <li>
+                  Voeg een <em>internetagenda</em> / <em>agenda vanaf internet</em>
+                  toe.
+                </li>
+                <li>Plak de agenda-URL als abonnement.</li>
+                <li>Importeer het .ics-bestand niet als vaste afspraaklijst.</li>
+              </ol>
+            </details>
+
+            <details>
+              <summary>Nextcloud Calendar</summary>
+              <ol>
+                <li>Open Nextcloud Calendar.</li>
+                <li>
+                  Kies nieuw / abonnement / externe kalender (afhankelijk van je
+                  versie).
+                </li>
+                <li>Plak de agenda-URL als abonnement (CalDAV/webcal-URL).</li>
+                <li>Sla op zodat de feed periodiek wordt ververst.</li>
+              </ol>
+            </details>
+
+            <div class="callout">
+              <strong>Importeren ≠ abonneren.</strong><br />
+              Importeren = eenmalige kopie. Abonneren = de kalender wordt
+              periodiek opnieuw opgehaald met het actuele venster (1 maand terug
+              tot 1 jaar vooruit).
+            </div>
+          </section>
+
+          <footer>
+            Geen accounts, geen cookies, geen tracking. Coördinaten worden alleen
+            gebruikt om tijden te berekenen en niet permanent opgeslagen.
+            Tijdzone: Europe/Amsterdam.
+          </footer>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const PRESETS = {
+        hoogeveen: { lat: "52.7286", lon: "6.4763" },
+        amsterdam: { lat: "52.3676", lon: "4.9041" },
+        maastricht: { lat: "50.8514", lon: "5.6910" },
+        groningen: { lat: "53.2194", lon: "6.5665" },
+        vlissingen: { lat: "51.4426", lon: "3.5735" },
+      };
+
+      const form = document.getElementById("calendar-form");
+      const select = document.getElementById("location-select");
+      const latInput = document.getElementById("lat");
+      const lonInput = document.getElementById("lon");
+      const result = document.getElementById("result");
+      const urlEl = document.getElementById("calendar-url");
+      const copyBtn = document.getElementById("copy-btn");
+      const copyStatus = document.getElementById("copy-status");
+
+      function parseCoord(value) {
+        const trimmed = String(value).trim();
+        if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return null;
+        const n = Number(trimmed);
+        return Number.isFinite(n) ? n : null;
+      }
+
+      function buildUrl(lat, lon) {
+        const url = new URL("/calendar.ics", window.location.origin);
+        url.searchParams.set("lat", String(lat));
+        url.searchParams.set("lon", String(lon));
+        return url.toString();
+      }
+
+      select.addEventListener("change", () => {
+        const preset = PRESETS[select.value];
+        if (!preset) return;
+        latInput.value = preset.lat;
+        lonInput.value = preset.lon;
+      });
+
+      function markCustomIfEdited() {
+        select.value = "custom";
+      }
+
+      latInput.addEventListener("input", markCustomIfEdited);
+      lonInput.addEventListener("input", markCustomIfEdited);
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        copyStatus.textContent = "";
+
+        const lat = parseCoord(latInput.value);
+        const lon = parseCoord(lonInput.value);
+
+        if (lat === null || lon === null) {
+          copyStatus.textContent =
+            "Gebruik decimale coördinaten met een punt, bijvoorbeeld 52.7286";
+          result.hidden = false;
+          result.classList.add("visible");
+          return;
+        }
+
+        if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+          copyStatus.textContent =
+            "Latitude moet tussen -90 en 90 liggen, longitude tussen -180 en 180.";
+          result.hidden = false;
+          result.classList.add("visible");
+          return;
+        }
+
+        const url = buildUrl(lat, lon);
+        urlEl.textContent = url;
+        result.hidden = false;
+        result.classList.add("visible");
+        result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+
+      copyBtn.addEventListener("click", async () => {
+        const text = urlEl.textContent || "";
+        if (!text) return;
+        try {
+          await navigator.clipboard.writeText(text);
+          copyStatus.textContent = "URL gekopieerd.";
+        } catch {
+          copyStatus.textContent =
+            "Kopiëren mislukt. Selecteer de URL handmatig.";
+        }
+      });
+    </script>
+  </body>
+</html>

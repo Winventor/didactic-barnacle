@@ -1,0 +1,12 @@
+name = "nachtcalendar"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+# Serve public/index.html for "/"; API routes are handled by the Worker.
+
+# Optional custom domain — configure in the Cloudflare dashboard.
+# routes = [{ pattern = "nachtcalendar.example.com", custom_domain = true }]
