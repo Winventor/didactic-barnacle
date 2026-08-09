@@ -15,10 +15,14 @@ services:
     name: nachtcalendar
     runtime: node
     plan: free
+    region: frankfurt
     rootDir: nachtcalendar
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /health
+    buildFilter:
+      paths:
+        - nachtcalendar/**
     envVars:
       - key: NODE_VERSION
         value: "22"
