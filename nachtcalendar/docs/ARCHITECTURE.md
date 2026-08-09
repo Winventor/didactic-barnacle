@@ -16,21 +16,16 @@ Kernvoorwaarden:
 
 **Nee.** GitHub Pages serveert uitsluitend statische bestanden. Het kan geen server-side berekening doen op queryparameters zoals `/calendar.ics?lat=52.728&lon=6.476`.
 
-Een puur client-side `.ics`-bestand zou:
-
-- niet werken als agenda-abonnement (clients verwachten `text/calendar` via HTTP GET);
-- geen voortschrijdend venster kunnen vernieuwen zonder opnieuw handmatig te downloaden.
-
 Daarom is een dynamische runtime nodig.
 
 ## 3. Gekozen architectuur
 
-**Cloudflare Workers + Hono (TypeScript)**
+**Node.js + Hono op Render** (geen Cloudflare nodig)
 
 ```
 Browser / agenda-app
         ↓
-  Cloudflare Worker (Hono)
+  Node-server (Hono)
         ├── GET /                 → instructiepagina + generator
         └── GET /calendar.ics     → dynamische ICS-feed
                 ↓
@@ -44,8 +39,9 @@ Waarom deze keuze:
 | Optie | Geschikt? | Reden |
 |-------|-----------|-------|
 | GitHub Pages | Nee | Geen dynamische server-side responses |
-| Cloudflare Workers | **Ja** | Stateless, goedkoop/gratis, edge-cache, GitHub Actions deploy |
-| Vercel / Netlify Functions | Ja | Ook geschikt; Worker is eenvoudiger voor één endpoint |
+| **Render (Node)** | **Ja** | Eenvoudig, past bij bestaande repo, geen Cloudflare-account |
+| Vercel / Netlify Functions | Ja | Ook geschikt als alternatief |
+| Cloudflare Workers | Ja | Optioneel, niet nodig voor deze setup |
 | Eigen VPS + database | Nee | Overbodig |
 
 Geen database: de feed wordt volledig uit `latitude`, `longitude` en de huidige datum gegenereerd.
@@ -57,7 +53,7 @@ nachtcalendar/
 ├── README.md
 ├── LICENSE
 ├── package.json
-├── wrangler.toml
+├── render.yaml
 ├── tsconfig.json
 ├── vitest.config.ts
 ├── docs/
@@ -65,50 +61,37 @@ nachtcalendar/
 ├── public/
 │   └── index.html
 ├── src/
-│   ├── index.ts          # HTTP-routes (Hono)
-│   ├── constants.ts      # standaardlocatie, tijdzone
-│   ├── validate.ts       # lat/lon-validatie
-│   ├── window.ts         # voortschrijdend datumvenster
-│   ├── astronomy.ts      # sunset / civil dusk / dawn / sunrise
-│   ├── ics.ts            # VCALENDAR-generatie
-│   └── locations.ts      # bekende NL-locaties (UI/metadata)
+│   ├── node-server.ts    # Node HTTP-entrypoint
+│   ├── app.ts            # HTTP-routes (Hono)
+│   ├── constants.ts
+│   ├── validate.ts
+│   ├── window.ts
+│   ├── astronomy.ts
+│   ├── ics.ts
+│   └── locations.ts
 └── tests/
-    ├── astronomy.test.ts
-    ├── ics.test.ts
-    ├── validate.test.ts
-    └── window.test.ts
 ```
 
 ## 5. Libraries
 
-| Library | Rol | Waarom |
-|---------|-----|--------|
-| **Hono** | HTTP-router | Lichtgewicht, Workers + Node lokaal |
-| **suncalc** | Astronomie | Onderhouden, locatie-afhankelijk, civil dawn/dusk (−6°) |
-| **luxon** | Tijdzones / kalenderrekenen | IANA `Europe/Amsterdam`, kalendermaanden/-jaren, DST |
-| **vitest** | Tests | Snel, TypeScript-vriendelijk |
-| **wrangler** | Deploy/dev Worker | Officiële Cloudflare CLI |
+| Library | Rol |
+|---------|-----|
+| **Hono** | HTTP-router |
+| **suncalc** | Astronomie (civil dawn/dusk −6°) |
+| **luxon** | IANA `Europe/Amsterdam`, kalendermaanden/-jaren, DST |
+| **tsx** | TypeScript runtime voor Node |
+| **vitest** | Tests |
 
-ICS wordt handmatig opgebouwd (geen zware ICS-library nodig): `VCALENDAR` + `VEVENT` met UTC-tijden (`...Z`) voor maximale compatibiliteit met Apple Calendar, Google Calendar, Outlook en Nextcloud.
+ICS wordt handmatig opgebouwd met UTC-tijden (`...Z`) voor maximale compatibiliteit.
 
 ## 6. Agenda-abonnement
 
-Clients abonneren zich op:
-
 ```
-https://<host>/calendar.ics?lat=52.7286&lon=6.4763
+https://<render-service>.onrender.com/calendar.ics?lat=52.7286&lon=6.4763
 ```
 
-of zonder parameters (standaard Hoogeveen):
+of zonder parameters (Hoogeveen):
 
 ```
-https://<host>/calendar.ics
+https://<render-service>.onrender.com/calendar.ics
 ```
-
-Response-headers:
-
-- `Content-Type: text/calendar; charset=utf-8`
-- `Cache-Control: public, max-age=21600` (6 uur; max. dagelijks actueel)
-- geen cookies, geen auth
-
-Bij opnieuw ophalen wordt het venster opnieuw berekend: vandaag − 1 maand t/m vandaag + 1 jaar.

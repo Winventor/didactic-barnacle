@@ -2,16 +2,8 @@ import { Hono } from "hono";
 import { icsResponseHeaders, buildIcs } from "./ics.js";
 import { isValidationError, validateCoordinates } from "./validate.js";
 
-type Env = {
-  Bindings: {
-    ASSETS?: {
-      fetch: (request: Request) => Promise<Response>;
-    };
-  };
-};
-
 export function createApp() {
-  const app = new Hono<Env>();
+  const app = new Hono();
 
   app.get("/health", (c) =>
     c.json({ ok: true, service: "nachtcalendar", timezone: "Europe/Amsterdam" }),
@@ -57,15 +49,6 @@ export function createApp() {
     });
 
     return c.body(body, 200, icsResponseHeaders());
-  });
-
-  // Serve the instruction page from assets when available (Workers),
-  // otherwise fall through for the Node static server.
-  app.get("/", async (c) => {
-    if (c.env?.ASSETS) {
-      return c.env.ASSETS.fetch(c.req.raw);
-    }
-    return c.text("Instruction page is served from /public/index.html", 200);
   });
 
   return app;

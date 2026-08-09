@@ -38,12 +38,12 @@ Berekeningen zijn locatie-afhankelijk via [SunCalc](https://github.com/mourner/s
 
 GitHub Pages kan **geen** dynamische server-side `.ics`-feeds genereren op basis van queryparameters. Agenda-apps moeten een HTTP-URL ophalen die `text/calendar` teruggeeft.
 
-Deze app draait daarom als **Cloudflare Worker** (stateless, gratis/goedkoop, deploybaar vanuit GitHub). Zie [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+Deze app draait daarom als **Node.js-service op Render** — **zonder Cloudflare**. Zie [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
 
 ```
 Browser / agenda-app
         ↓
-  Cloudflare Worker
+  Node-server (Hono)
         ├── GET /              → instructiepagina + generator
         └── GET /calendar.ics  → dynamische ICS-feed
 ```
@@ -53,7 +53,7 @@ Browser / agenda-app
 ```bash
 cd nachtcalendar
 npm install
-npm run dev:node
+npm run dev
 ```
 
 Open:
@@ -62,10 +62,10 @@ Open:
 - ICS (Hoogeveen): http://localhost:8787/calendar.ics  
 - ICS (Amsterdam): http://localhost:8787/calendar.ics?lat=52.3676&lon=4.9041  
 
-Of met Wrangler (Cloudflare-lokaal):
+Productie-start (zelfde entrypoint):
 
 ```bash
-npm run dev
+npm start
 ```
 
 ## Hoe voer ik tests uit?
@@ -77,40 +77,48 @@ npm test
 
 Tests dekken o.a. winter/zomer, DST-overgangen, Nederlandse locaties, eventvolgorde, ICS-output, stabiele UIDs, URL-validatie en het voortschrijdende venster.
 
-## Hoe deploy ik het?
+## Hoe deploy ik het? (Render — geen Cloudflare)
 
-### Eenmalig in Cloudflare
+### Optie A — Render Blueprint (aanbevolen)
 
-1. Maak een Cloudflare-account.  
-2. Maak een API-token met rechten om Workers te deployen.  
-3. Noteer je Account ID.
+1. Ga naar [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint**.
+2. Koppel deze GitHub-repository.
+3. Gebruik `render.yaml` in de repo-root (bevat service `nachtcalendar`)  
+   of `nachtcalendar/render.yaml` voor alleen deze app.
+4. Deploy. Render geeft een URL zoals:
 
-### Eenmalig in GitHub
+```text
+https://nachtcalendar.onrender.com
+```
 
-Repository secrets:
+Abonnements-URL:
 
-| Secret | Beschrijving |
-|--------|--------------|
-| `CLOUDFLARE_API_TOKEN` | API-token |
-| `CLOUDFLARE_ACCOUNT_ID` | Account ID |
+```text
+https://nachtcalendar.onrender.com/calendar.ics
+https://nachtcalendar.onrender.com/calendar.ics?lat=52.7286&lon=6.4763
+```
 
-### Automatisch via GitHub Actions
+### Optie B — Handmatige Web Service
+
+1. **New → Web Service**
+2. Root directory: `nachtcalendar`
+3. Build: `npm ci`
+4. Start: `npm start`
+5. Health check path: `/health`
+
+### GitHub Actions
 
 Workflow: [`.github/workflows/nachtcalendar.yml`](../.github/workflows/nachtcalendar.yml)
 
-Bij push naar `master`/`main` (pad `nachtcalendar/**`):
+Bij push/PR op `nachtcalendar/**`:
 
-1. `npm ci`  
-2. `npm test`  
-3. `npm run build` (typecheck)  
-4. `wrangler deploy` (alleen als de Cloudflare-secrets gezet zijn)
+1. `npm ci`
+2. `npm test`
+3. `npm run build` (typecheck)
 
-Handmatig deployen:
+Deploy naar Render gebeurt via Render’s GitHub-koppeling (Blueprint/autodeploy), niet via Cloudflare.
 
-```bash
-cd nachtcalendar
-npm run deploy
-```
+> **Let op (gratis plan):** Render kan free services slapen na inactiviteit. De eerste request na slaap duurt langer; daarna werkt het abonnement normaal.
 
 ## Hoe maak ik een abonnement?
 
@@ -119,16 +127,16 @@ npm run deploy
 3. Klik **Maak agenda-abonnement**.  
 4. Kopieer de URL en voeg die toe als **abonnement** in je agenda-app.
 
-Voorbeeld:
+Voorbeeld na deploy:
 
 ```text
-https://<jouw-worker>.workers.dev/calendar.ics?lat=52.7286&lon=6.4763
+https://nachtcalendar.onrender.com/calendar.ics?lat=52.7286&lon=6.4763
 ```
 
 Zonder parameters (Hoogeveen):
 
 ```text
-https://<jouw-worker>.workers.dev/calendar.ics
+https://nachtcalendar.onrender.com/calendar.ics
 ```
 
 ## Hoe voeg ik het toe aan Apple Calendar?
@@ -189,21 +197,13 @@ GET /calendar/52.7286/6.4763.ics
 ### Response
 
 - `Content-Type: text/calendar; charset=utf-8`  
-- `Cache-Control: public, max-age=21600` (6 uur; minstens dagelijks opnieuw actueel)  
+- `Cache-Control: public, max-age=21600` (6 uur)  
 - Geldige `VCALENDAR` / `VEVENT` met stabiele UIDs
 
 ### Kalendernaam
 
 - Bekende locatie: `X-WR-CALNAME:Schemer en Nacht - Hoogeveen`  
 - Alleen coördinaten: `X-WR-CALNAME:Schemer en Nacht`
-
-### Stabiele UIDs (voorbeeld)
-
-```text
-schemer-evening-2024-06-15-52.72860-6.47630@nachtcalendar
-nacht-2024-06-15-52.72860-6.47630@nachtcalendar
-schemer-morning-2024-06-15-52.72860-6.47630@nachtcalendar
-```
 
 ## Welke privacyaspecten zijn er?
 
@@ -214,10 +214,10 @@ schemer-morning-2024-06-15-52.72860-6.47630@nachtcalendar
 
 ## Tech-stack
 
-- TypeScript + Hono  
+- TypeScript + Hono op Node.js  
 - SunCalc (astronomie)  
 - Luxon (`Europe/Amsterdam`)  
-- Cloudflare Workers + Wrangler  
+- Render (hosting)  
 - Vitest  
 
 ## Directorystructuur
@@ -228,6 +228,6 @@ nachtcalendar/
 ├── src/                  # calendar endpoint + berekeningen
 ├── tests/
 ├── docs/ARCHITECTURE.md
-├── wrangler.toml
+├── render.yaml
 └── package.json
 ```

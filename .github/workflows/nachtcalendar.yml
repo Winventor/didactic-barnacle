@@ -6,10 +6,12 @@ on:
     paths:
       - "nachtcalendar/**"
       - ".github/workflows/nachtcalendar.yml"
+      - "render.yaml"
   pull_request:
     paths:
       - "nachtcalendar/**"
       - ".github/workflows/nachtcalendar.yml"
+      - "render.yaml"
   workflow_dispatch:
 
 defaults:
@@ -41,45 +43,3 @@ jobs:
 
       - name: Build check
         run: npm run build
-
-  deploy:
-    if: >
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
-    needs: test-and-build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: nachtcalendar/package-lock.json
-
-      - name: Install
-        run: npm ci
-
-      - name: Check Cloudflare credentials
-        id: creds
-        env:
-          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          if [ -n "$TOKEN" ] && [ -n "$ACCOUNT" ]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "Cloudflare secrets not configured; skipping deploy."
-          fi
-
-      - name: Deploy to Cloudflare Workers
-        if: steps.creds.outputs.available == 'true'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: nachtcalendar
-          command: deploy

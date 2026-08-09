@@ -5,29 +5,25 @@
   "description": "Dynamisch iCalendar-abonnement voor schemering en nacht",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
-    "dev:node": "tsx watch src/node-server.ts",
+    "dev": "tsx watch src/node-server.ts",
+    "start": "tsx src/node-server.ts",
     "build": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "tsc --noEmit",
-    "deploy": "wrangler deploy",
-    "cf-typegen": "wrangler types"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "hono": "^4.7.0",
     "luxon": "^3.5.0",
-    "suncalc": "^1.9.0"
+    "suncalc": "^1.9.0",
+    "tsx": "^4.19.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250200.0",
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.15.0",
     "@types/suncalc": "^1.9.2",
-    "tsx": "^4.19.0",
     "typescript": "^5.8.0",
-    "vitest": "^3.0.0",
-    "wrangler": "^3.114.0"
+    "vitest": "^3.0.0"
   },
   "engines": {
     "node": ">=20"

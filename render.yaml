@@ -9,3 +9,16 @@ services:
       - path: /*
         name: Cache-Control
         value: public, max-age=0, must-revalidate
+
+  # Dynamisch ICS-abonnement (Schemer en Nacht) — Node, geen Cloudflare nodig
+  - type: web
+    name: nachtcalendar
+    runtime: node
+    plan: free
+    rootDir: nachtcalendar
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"

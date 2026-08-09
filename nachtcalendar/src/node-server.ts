@@ -18,19 +18,25 @@ createServer(async (req, res) => {
       return;
     }
 
+    const incoming = new Headers();
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (typeof value === "string") incoming.set(key, value);
+      else if (Array.isArray(value)) incoming.set(key, value.join(", "));
+    }
+
     const request = new Request(url, {
       method: req.method,
-      headers: req.headers as HeadersInit,
+      headers: incoming,
     });
     const response = await app.fetch(request);
     const buffer = Buffer.from(await response.arrayBuffer());
 
-    const headers: Record<string, string> = {};
+    const outgoing: Record<string, string> = {};
     response.headers.forEach((value, key) => {
-      headers[key] = value;
+      outgoing[key] = value;
     });
 
-    res.writeHead(response.status, headers);
+    res.writeHead(response.status, outgoing);
     res.end(buffer);
   } catch (error) {
     console.error(error);

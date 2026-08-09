@@ -9,8 +9,6 @@
 !.yarn/releases
 !.yarn/versions
 
-# Cloudflare Workers
-/nachtcalendar/.wrangler
 /nachtcalendar/dist
 
 # testing
