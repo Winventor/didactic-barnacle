@@ -57,7 +57,7 @@ async function fetchCBSRows(tableId: string, filter: string, top = 50): Promise<
 
 /** Live nationale arbeidsparticipatie (CBS Kerncijfers wijken en buurten) */
 export async function fetchNationalLabourSeries(
-  startYear = 2015,
+  startYear = 2010,
   endYear = 2024
 ): Promise<CBSLabourPoint[]> {
   const yearFilters = Array.from({ length: endYear - startYear + 1 }, (_, i) => {
@@ -135,8 +135,8 @@ export async function fetchProvinceLabourProxy(
 
 export async function fetchLiveLabourContext(regionId: string, parentProvinceId?: string) {
   const [national, unemploymentNational] = await Promise.all([
-    fetchNationalLabourSeries(2015, 2024),
-    fetchNationalUnemploymentSeries(2015, 2024).catch(() => [] as CBSUnemploymentPoint[]),
+    fetchNationalLabourSeries(2010, 2024),
+    fetchNationalUnemploymentSeries(2010, 2024).catch(() => [] as CBSUnemploymentPoint[]),
   ]);
   let regional: CBSLabourPoint | null = null;
 
@@ -167,7 +167,7 @@ interface CBSUnemploymentRow {
 
 /** Live nationaal werkloosheidspercentage (CBS Arbeidsdeelname) */
 export async function fetchNationalUnemploymentSeries(
-  startYear = 2015,
+  startYear = 2010,
   endYear = 2024
 ): Promise<CBSUnemploymentPoint[]> {
   const yearFilters = Array.from({ length: endYear - startYear + 1 }, (_, i) => {

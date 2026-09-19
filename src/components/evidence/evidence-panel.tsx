@@ -147,6 +147,46 @@ export function ExplainabilityPanel({ explainability, open, onClose }: Explainab
             <p className="text-sm text-muted-foreground">
               {explainability.model.name} — {explainability.model.description}
             </p>
+            {explainability.modelSelection && (
+              <div className="mt-3 space-y-3">
+                <p className="text-sm text-muted-foreground">{explainability.modelSelection.reason}</p>
+                {explainability.modelSelection.candidates.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                      Modelvergelijking (RMSE)
+                    </p>
+                    <div className="rounded-lg border border-border/50 overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-muted/50 text-left text-xs text-muted-foreground">
+                            <th className="px-3 py-2 font-medium">Model</th>
+                            <th className="px-3 py-2 font-medium">RMSE</th>
+                            <th className="px-3 py-2 font-medium">R²</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {explainability.modelSelection.candidates.map((c) => (
+                            <tr
+                              key={c.modelId}
+                              className={c.selected ? "bg-primary/5 font-medium" : "border-t border-border/30"}
+                            >
+                              <td className="px-3 py-2">
+                                {c.modelName}
+                                {c.selected && (
+                                  <span className="ml-2 text-xs text-primary">gekozen</span>
+                                )}
+                              </td>
+                              <td className="px-3 py-2 text-muted-foreground">{c.rmse}</td>
+                              <td className="px-3 py-2 text-muted-foreground">{c.rSquared}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </section>
           <section>
             <h3 className="text-sm font-medium mb-2">Historische periode</h3>
