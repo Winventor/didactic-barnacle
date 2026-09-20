@@ -6,6 +6,7 @@ import type {
   SourceHealth,
 } from "../types";
 import { fetchWithTimeout } from "../utils/retry";
+import { fetchLegal } from "../utils/browser-fetch";
 import { getCached, setCache } from "../utils/cache";
 
 export abstract class BaseAdapter implements LegalSourceAdapter {
@@ -50,6 +51,11 @@ export abstract class BaseAdapter implements LegalSourceAdapter {
     const wait = this.rateLimitMs - (now - this.lastRequestAt);
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
     this.lastRequestAt = Date.now();
+
+    if (url.includes("data.rechtspraak.nl") || url.includes("uitspraken.rechtspraak.nl")) {
+      return fetchLegal(url, { timeoutMs: this.timeoutMs, ...options });
+    }
+
     return fetchWithTimeout(url, { timeoutMs: this.timeoutMs, ...options });
   }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchOrchestrator } from "@/legal/services/search-orchestrator";
+import { isEcli } from "@/legal/utils/rechtspraak-search";
 
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q") ?? "";
@@ -10,9 +11,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Parameter q is verplicht" }, { status: 400 });
   }
 
+  const query = isEcli(q)
+    ? { identifier: q.trim(), limit }
+    : { text: q, limit };
+
   const results = adapter
-    ? await searchOrchestrator.searchAll({ text: q, limit }, [adapter])
-    : await searchOrchestrator.searchByPriority({ text: q, limit });
+    ? await searchOrchestrator.searchAll(query, [adapter])
+    : await searchOrchestrator.searchByPriority(query);
 
   return NextResponse.json({ query: q, count: results.length, results });
 }
