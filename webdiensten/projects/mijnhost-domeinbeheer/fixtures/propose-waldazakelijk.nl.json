@@ -1,0 +1,26 @@
+{
+  "domain": "waldazakelijk.nl",
+  "note": "VOORSTEL — niet toegepast. Merge met bestaande zone vóór apply. Goedkeuring vereist.",
+  "records": [
+    {
+      "type": "A",
+      "name": "waldazakelijk.nl.",
+      "value": "203.0.113.10",
+      "ttl": 300
+    },
+    {
+      "type": "CNAME",
+      "name": "www.waldazakelijk.nl.",
+      "value": "waldazakelijk.nl.",
+      "ttl": 300
+    }
+  ],
+  "checklist": [
+    "Bestaande MX/TXT/SPF/DKIM/DMARC behouden of expliciet vervangen",
+    "dns backup draaien",
+    "dry-run apply-file",
+    "gebruikersgoedkeuring",
+    "apply met --i-approve",
+    "dig + publieke resolvers controleren"
+  ]
+}

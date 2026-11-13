@@ -1,0 +1,55 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-walda}
+      MYSQL_USER: ${MYSQL_USER:-walda}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-walda_dev_only}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_dev_only}
+    volumes:
+      - walda_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  wordpress:
+    image: wordpress:6.7-php8.2-apache
+    restart: unless-stopped
+    ports:
+      - "${WP_PORT:-8080}:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${MYSQL_USER:-walda}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD:-walda_dev_only}
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE:-walda}
+      WORDPRESS_DEBUG: "1"
+    volumes:
+      - walda_wp:/var/www/html
+      - ./theme/walda-zakelijk:/var/www/html/wp-content/themes/walda-zakelijk
+    depends_on:
+      db:
+        condition: service_healthy
+
+  wpcli:
+    image: wordpress:cli-php8.2
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${MYSQL_USER:-walda}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD:-walda_dev_only}
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE:-walda}
+    volumes:
+      - walda_wp:/var/www/html
+      - ./theme/walda-zakelijk:/var/www/html/wp-content/themes/walda-zakelijk
+      - ./scripts:/scripts
+    depends_on:
+      - wordpress
+    entrypoint: ["wp"]
+    profiles: ["cli"]
+
+volumes:
+  walda_db:
+  walda_wp:
