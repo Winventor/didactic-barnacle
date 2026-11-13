@@ -2,14 +2,12 @@
 
 Configureer in Cursor Secrets / environment — plak nooit waarden in chat of Git.
 
-| Naam | Project |
-|------|---------|
-| `MIJNHOST_API_TOKEN` | Domeinbeheer |
-| `WALDA_SSH_HOST` | Walda Zakelijk |
-| `WALDA_SSH_USER` | Walda Zakelijk |
-| `WALDA_SSH_KEY` | Walda Zakelijk |
-| `WALDA_WP_URL` | Walda Zakelijk |
-| `WALDA_WP_APP_PASSWORD` | Walda Zakelijk |
-| `SITEGROUND_SSH_HOST` | SiteGround |
-| `SITEGROUND_SSH_USER` | SiteGround |
-| `SITEGROUND_SSH_KEY` | SiteGround |
+| Naam | Project | Status |
+|------|---------|--------|
+| `MIJNHOST_DA_URL` | Hosting DA | Aanwezig |
+| `MIJNHOST_DA_USER` / `MIJNHOST_DA_PASS` | Hosting DA | Aanwezig |
+| `MIJNHOST_SFTP_HOST` / `_USER` / `_PASS` | SFTP | Aanwezig (host-secret wijst nu naar DA-URL; gebruik `h70.mijn.host`) |
+| `MIJNHOST_DB_*` | Bestaande DB SLD | Aanwezig |
+| `MIJNHOST_API_TOKEN` | Registrar/DNS API | **Nog toevoegen** |
+| `WALDA_SSH_*` / `WALDA_WP_*` | Walda Zakelijk | Later |
+| `SITEGROUND_SSH_*` | SiteGround | Later |

@@ -6,10 +6,19 @@ Centrale beheeromgeving voor domeinonderzoek, registratievoorbereiding en DNS vi
 
 ## Vereisten
 
-1. Account op [mijn.host](https://mijn.host/)
-2. Personal Access Token: Control Panel → Account → API access  
-   Aanbevolen startscopes: `domains:read`
-3. Cursor Secret / env: `MIJNHOST_API_TOKEN`
+1. Account op [mijn.host](https://mijn.host/) — **aanwezig** (hosting `h70` / `sldrenthe.nl`)
+2. DirectAdmin-secrets: `MIJNHOST_DA_URL`, `MIJNHOST_DA_USER`, `MIJNHOST_DA_PASS` — **aanwezig**
+3. SFTP-secrets — **aanwezig** (host effectief `h70.mijn.host:22`)
+4. Personal Access Token voor registrar-API: Control Panel → Account → API access  
+   Cursor Secret: `MIJNHOST_API_TOKEN` — **nog toe te voegen** (beschikbaarheid/registratie)
+
+## DirectAdmin CLI (werkt nu)
+
+```bash
+./webdiensten/scripts/mijnhost-da.sh account
+./webdiensten/scripts/mijnhost-da.sh domains list
+./webdiensten/scripts/mijnhost-da.sh domains dns sldrenthe.nl
+```
 
 ## CLI
 

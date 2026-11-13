@@ -5,9 +5,12 @@
 | Website | Provider | Omgeving | Domein | Status |
 |---------|----------|----------|--------|--------|
 | Walda Zakelijk | mijn.host | `waldazakelijk-website` | n.n.b. (kandidaten hieronder) | Technisch skelet; inhoud volgt aparte opdracht |
+| SLD Drenthe (bestaand) | mijn.host h70 | (buiten Walda-scope) | `sldrenthe.nl` + subdomeinen | Live: landing + CiviCRM + Nextcloud |
 | SiteGround-sites | SiteGround | `siteground-websites` | per site | Geen account; template klaar |
 
 Bestaande sites in deze repo (GitHub Pages / Next.js) vallen buiten deze webdiensten-scope, tenzij expliciet gevraagd.
+
+Live details: [`inventaris/MIJNHOST-LIVE.md`](inventaris/MIJNHOST-LIVE.md).
 
 ## Domeinkandidaten Walda Zakelijk
 

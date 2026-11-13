@@ -2,18 +2,19 @@
 
 ## Geblokkeerd — wacht op gebruiker
 
-- [ ] Cursor Secret `MIJNHOST_API_TOKEN` aanmaken (Account → API access op mijn.host)
-- [ ] Bevestigen of er al een mijn.host-account/hosting bestaat
+- [ ] Cursor Secret `MIJNHOST_API_TOKEN` (registrar API: beschikbaarheid/registratie)
+- [ ] Keuze: Walda op **nieuw** WP-hostingpakket vs. meeliften op bestaand `mijnhost_basic` (MySQL 5/5 vol)
 - [ ] Domein kiezen en **goedkeuren** voor registratie
-- [ ] Hostingpakket mijn.host **goedkeuren** (bestelling)
+- [ ] Hostingbeslissing **goedkeuren** (nieuw pakket / upgrade / DB vrijmaken)
 - [ ] SiteGround-account **goedkeuren** (GrowBig aanbevolen)
-- [ ] Optioneel: WordPress MCP authenticeren in Cursor
+- [ ] Optioneel: WordPress MCP; SSH inschakelen; `MIJNHOST_SFTP_HOST` → `h70.mijn.host`
 
 ## Voorbereid — klaar om uit te voeren na toegang
 
-- [ ] Domeinlijst ophalen en DNS inventariseren
+- [x] Hostingaccount gevonden en DirectAdmin/SFTP getest
+- [x] Domein/DNS inventaris `sldrenthe.nl` (read-only)
 - [ ] DNS-koppeling Walda → hosting voorbereiden en toepassen
-- [ ] WordPress op hosting installeren + Application Password
+- [ ] WordPress installeren + Application Password
 - [ ] Staging/productie-pipeline activeren
 - [ ] SiteGround SSH-sleutel koppelen en eerste site uit template zetten
 
@@ -28,7 +29,7 @@
 - [x] Fase 1 inventarisatie Cursor + providers
 - [x] Architectuur en documentatiestructuur
 - [x] Drie projectmappen + agentrollen
-- [x] mijn.host CLI met dry-run/goedkeuringsgates
+- [x] mijn.host registrar-CLI + DirectAdmin-CLI
 - [x] Lokale Docker WordPress-basis Walda
 - [x] SiteGround pakketadvies + WP-template
-- [x] Voorstel websitestructuur Walda Zakelijk
+- [x] Live inventarisatie bestaand mijn.host-account
