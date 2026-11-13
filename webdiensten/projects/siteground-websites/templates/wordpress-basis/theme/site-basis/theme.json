@@ -1,0 +1,13 @@
+{
+  "$schema": "https://schemas.wp.org/wp/6.7/theme.json",
+  "version": 3,
+  "settings": {
+    "appearanceTools": true,
+    "layout": { "contentSize": "720px", "wideSize": "1100px" }
+  },
+  "styles": {
+    "typography": {
+      "fontFamily": "\"Libre Franklin\", \"Segoe UI\", sans-serif"
+    }
+  }
+}

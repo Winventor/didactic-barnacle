@@ -31,6 +31,14 @@ yarn-error.log*
 # env files
 .env*
 !.env.example
+!**/config/env.example
+!**/*.env.example
+
+# webdiensten: lokale secrets / dumps
+webdiensten/**/.env
+webdiensten/**/*.sql
+webdiensten/projects/mijnhost-domeinbeheer/logs/dns-backups/*.json
+!webdiensten/projects/mijnhost-domeinbeheer/logs/dns-backups/.gitkeep
 
 # typescript
 *.tsbuildinfo

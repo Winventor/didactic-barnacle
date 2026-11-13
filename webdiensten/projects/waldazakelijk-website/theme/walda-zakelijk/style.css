@@ -1,0 +1,30 @@
+/*
+Theme Name: Walda Zakelijk
+Theme URI: https://github.com/Winventor/didactic-barnacle
+Author: Walda Zakelijk
+Description: Block theme basis voor Walda Zakelijk — huisstijl volgt in aparte opdracht.
+Version: 0.1.0
+Requires at least: 6.4
+Tested up to: 6.7
+Requires PHP: 8.0
+Text Domain: walda-zakelijk
+*/
+
+/* Minimale basis; visuele identiteit wordt later vastgelegd. */
+:root {
+  --walda-ink: #1a1f2e;
+  --walda-paper: #f7f5f1;
+  --walda-accent: #0f5c4c;
+  --walda-muted: #5c6578;
+}
+
+body {
+  color: var(--walda-ink);
+  background: var(--walda-paper);
+  font-family: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  line-height: 1.55;
+}
+
+.wp-site-blocks {
+  min-height: 100vh;
+}

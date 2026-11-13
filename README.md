@@ -1,5 +1,11 @@
 # Beleidsdashboard OpenRaadsinformatie
 
+## Centrale webdienstenomgeving
+
+Voor websiteontwikkeling, hosting, domeinen en DNS (Walda Zakelijk, mijn.host, SiteGround) zie **[`webdiensten/`](webdiensten/README.md)**.
+
+---
+
 Moderne, responsieve webapplicatie waarmee openbare beleidsdocumenten uit [OpenRaadsinformatie.nl](https://www.openraadsinformatie.nl) overzichtelijk kunnen worden doorzocht, gefilterd en geanalyseerd.
 
 ## Live website
