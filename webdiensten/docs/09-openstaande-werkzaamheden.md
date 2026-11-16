@@ -23,6 +23,8 @@
 - [ ] Huisstijl, teksten, dienstenstructuur Walda Zakelijk
 - [ ] Visueel ontwerp en thema-afwerking
 - [ ] Content vullen en SEO
+- [ ] PLP112: projectbrief invullen (doel, merk, domein, hosting)
+- [ ] PLP112: inhoud, huisstijl en publicatie na brief
 
 ## Voltooid
 
@@ -33,3 +35,4 @@
 - [x] Lokale Docker WordPress-basis Walda
 - [x] SiteGround pakketadvies + WP-template
 - [x] Live inventarisatie bestaand mijn.host-account
+- [x] Project PLP112 technisch skelet (Docker + thema + docs)

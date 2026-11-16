@@ -5,6 +5,7 @@
 | Website | Provider | Omgeving | Domein | Status |
 |---------|----------|----------|--------|--------|
 | Walda Zakelijk | mijn.host | `waldazakelijk-website` | n.n.b. (kandidaten hieronder) | Technisch skelet; inhoud volgt aparte opdracht |
+| PLP112 | n.n.b. | `plp112` | n.n.b. | Technisch skelet; projectbrief open |
 | SLD Drenthe (bestaand) | mijn.host h70 | (buiten Walda-scope) | `sldrenthe.nl` + subdomeinen | Live: landing + CiviCRM + Nextcloud |
 | SiteGround-sites | SiteGround | `siteground-websites` | per site | Geen account; template klaar |
 

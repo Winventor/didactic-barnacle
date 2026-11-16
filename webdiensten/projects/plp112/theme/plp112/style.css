@@ -1,0 +1,30 @@
+/*
+Theme Name: PLP112
+Theme URI: https://github.com/Winventor/didactic-barnacle
+Author: PLP112
+Description: Block theme basis voor project PLP112 — merk, inhoud en huisstijl volgen in een aparte opdracht.
+Version: 0.1.0
+Requires at least: 6.4
+Tested up to: 6.7
+Requires PHP: 8.0
+Text Domain: plp112
+*/
+
+/* Minimale basis; visuele identiteit wordt later vastgelegd. */
+:root {
+  --plp-ink: #0e1a24;
+  --plp-paper: #eef2f5;
+  --plp-accent: #1f6f8b;
+  --plp-muted: #5a6b78;
+}
+
+body {
+  color: var(--plp-ink);
+  background: var(--plp-paper);
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  line-height: 1.55;
+}
+
+.wp-site-blocks {
+  min-height: 100vh;
+}

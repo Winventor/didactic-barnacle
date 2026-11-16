@@ -7,6 +7,7 @@ Professionele omgeving in Cursor voor het ontwikkelen, publiceren en beheren van
 | Project | Werkomgeving | Pad | Doel |
 |---------|--------------|-----|------|
 | Walda Zakelijk – Website | `waldazakelijk-website` | [`projects/waldazakelijk-website`](projects/waldazakelijk-website/) | WordPress-site bij mijn.host |
+| PLP112 | `plp112` | [`projects/plp112`](projects/plp112/) | Nieuw project (doel/inhoud volgt) |
 | Mijn.host – Domeinbeheer | `mijnhost-domeinbeheer` | [`projects/mijnhost-domeinbeheer`](projects/mijnhost-domeinbeheer/) | Domeinen & DNS via mijn.host API |
 | SiteGround – Websites | `siteground-websites` | [`projects/siteground-websites`](projects/siteground-websites/) | Multi-site WordPress bij SiteGround |
 
@@ -42,6 +43,9 @@ Herbruikbare instructies in [`agents/`](agents/):
 
 # Lokale WordPress-testomgeving voor Walda Zakelijk
 cd webdiensten/projects/waldazakelijk-website && docker compose up -d
+
+# Lokale WordPress-testomgeving voor PLP112 (poort 8081)
+cd webdiensten/projects/plp112 && docker compose up -d
 ```
 
 ## Goedkeuringsgrenzen
