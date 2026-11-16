@@ -1,0 +1,55 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-plp112}
+      MYSQL_USER: ${MYSQL_USER:-plp112}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-plp112_dev_only}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_dev_only}
+    volumes:
+      - plp112_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  wordpress:
+    image: wordpress:6.7-php8.2-apache
+    restart: unless-stopped
+    ports:
+      - "${WP_PORT:-8081}:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${MYSQL_USER:-plp112}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD:-plp112_dev_only}
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE:-plp112}
+      WORDPRESS_DEBUG: "1"
+    volumes:
+      - plp112_wp:/var/www/html
+      - ./theme/plp112:/var/www/html/wp-content/themes/plp112
+    depends_on:
+      db:
+        condition: service_healthy
+
+  wpcli:
+    image: wordpress:cli-php8.2
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${MYSQL_USER:-plp112}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD:-plp112_dev_only}
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE:-plp112}
+    volumes:
+      - plp112_wp:/var/www/html
+      - ./theme/plp112:/var/www/html/wp-content/themes/plp112
+      - ./scripts:/scripts
+    depends_on:
+      - wordpress
+    entrypoint: ["wp"]
+    profiles: ["cli"]
+
+volumes:
+  plp112_db:
+  plp112_wp:

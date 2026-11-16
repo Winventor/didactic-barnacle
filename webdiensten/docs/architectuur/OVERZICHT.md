@@ -32,11 +32,12 @@ Nederlandse opdracht (Cursor)
 
 ## Projectscheiding
 
-Alle drie de projecten leven in deze repository onder `webdiensten/projects/` zodat één Cloud Agent-omgeving alles kan bereiken. Later kunnen aparte GitHub-repos + Cursor-omgevingen worden afgesplitst zonder de mapstructuur te breken.
+Alle projecten leven in deze repository onder `webdiensten/projects/` zodat één Cloud Agent-omgeving alles kan bereiken. Later kunnen aparte GitHub-repos + Cursor-omgevingen worden afgesplitst zonder de mapstructuur te breken.
 
 | Werkomgeving-ID | Inhoud |
 |-----------------|--------|
 | `waldazakelijk-website` | WP-thema, content, docker, publicatieprocedures |
+| `plp112` | WP-thema, content, docker, projectbrief + procedures |
 | `mijnhost-domeinbeheer` | API-client, DNS-workflows, change-log |
 | `siteground-websites` | Pakketadvies, WP-basis-template, per-site mappen |
 
@@ -47,6 +48,7 @@ Alle drie de projecten leven in deze repository onder `webdiensten/projects/` zo
 | `MIJNHOST_API_TOKEN` | Domein/DNS API (start met `domains:read`; later `write`/`purchase` na goedkeuring) |
 | `MIJNHOST_SSH_*` | Hosting SSH/SFTP Walda |
 | `WALDA_WP_APP_PASSWORD` | WordPress REST |
+| `PLP112_SSH_*` / `PLP112_WP_*` | Hosting + WordPress REST voor PLP112 |
 | `SITEGROUND_SSH_*` | SiteGround SSH-sleutel |
 
 Opslag: Cursor Secrets / environment secrets. Nooit in Git, issues of markdown met echte waarden.

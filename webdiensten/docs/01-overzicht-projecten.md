@@ -5,6 +5,7 @@
 | A | Walda Zakelijk – Website | `waldazakelijk-website` | `webdiensten/projects/waldazakelijk-website` | Ingericht (technisch skelet) |
 | B | Mijn.host – Domeinbeheer | `mijnhost-domeinbeheer` | `webdiensten/projects/mijnhost-domeinbeheer` | Ingericht (CLI + procedures) |
 | C | SiteGround – Websites | `siteground-websites` | `webdiensten/projects/siteground-websites` | Ingericht (advies + template) |
+| D | PLP112 | `plp112` | `webdiensten/projects/plp112` | Ingericht (technisch skelet; brief open) |
 
 **Centrale hub:** `webdiensten/` in repo `Winventor/didactic-barnacle`.
 
